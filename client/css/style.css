@@ -1,0 +1,351 @@
+/* Global Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* Loading Screen */
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loading-content {
+    text-align: center;
+    color: white;
+}
+
+.loading-content h1 {
+    font-size: 3em;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255,255,255,0.3);
+    border-top: 5px solid white;
+    border-radius: 50%;
+    margin: 30px auto;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 1.2em;
+    margin-top: 20px;
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000; /* Higher than loading screen so auth modal appears on top */
+}
+
+.modal-content {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    max-width: 400px;
+    width: 90%;
+}
+
+.modal-content h2 {
+    color: #667eea;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.modal-content h3 {
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Auth Forms */
+.auth-form {
+    display: none;
+}
+
+.auth-form.active {
+    display: block;
+}
+
+.auth-form form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.auth-form input {
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.auth-switch {
+    margin-top: 20px;
+    text-align: center;
+    color: #666;
+}
+
+.auth-switch a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+.error-message {
+    background: #ff4444;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 15px;
+    text-align: center;
+}
+
+/* Game Container */
+#game-container {
+    position: relative;
+    display: none;
+}
+
+#game-container.active {
+    display: block;
+}
+
+/* Chat UI */
+#chat-container {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 350px;
+    background: rgba(0,0,0,0.8);
+    border-radius: 10px;
+    padding: 10px;
+    z-index: 100;
+}
+
+#chat-messages {
+    height: 200px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    padding: 5px;
+}
+
+.chat-message {
+    color: white;
+    padding: 5px;
+    margin: 3px 0;
+    border-radius: 5px;
+    background: rgba(255,255,255,0.1);
+}
+
+.chat-message .username {
+    color: #667eea;
+    font-weight: bold;
+}
+
+#chat-input-container {
+    display: flex;
+}
+
+#chat-input {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 5px;
+    background: rgba(255,255,255,0.2);
+    color: white;
+}
+
+#chat-input::placeholder {
+    color: rgba(255,255,255,0.6);
+}
+
+#chat-input:focus {
+    outline: none;
+    background: rgba(255,255,255,0.3);
+}
+
+/* Player List */
+#players-list {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 200px;
+    background: rgba(0,0,0,0.8);
+    border-radius: 10px;
+    padding: 15px;
+    z-index: 100;
+    color: white;
+}
+
+#players-list h4 {
+    margin-bottom: 10px;
+    color: #667eea;
+}
+
+.player-item {
+    padding: 5px;
+    margin: 3px 0;
+    border-radius: 5px;
+    background: rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.player-avatar-icon {
+    width: 20px;
+    height: 20px;
+    background: #667eea;
+    border-radius: 50%;
+}
+
+/* Notification System */
+#notification-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.notification {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 30px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    animation: slideDown 0.5s ease;
+}
+
+.notification.achievement {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(102, 126, 234, 0.5);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(102, 126, 234, 0.8);
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+    #chat-container {
+        width: 250px;
+        bottom: 10px;
+        left: 10px;
+    }
+    
+    #players-list {
+        width: 150px;
+        top: 10px;
+        right: 10px;
+    }
+    
+    #chat-messages {
+        height: 150px;
+    }
+}
+
+@media (max-width: 600px) {
+    .modal-content {
+        padding: 20px;
+    }
+    
+    #chat-container,
+    #players-list {
+        display: none !important;
+    }
+}

@@ -1,0 +1,110 @@
+// Prisma Schema for GokGok Multiplayer
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  username      String   @unique @db.VarChar(50)
+  email         String   @unique @db.VarChar(100)
+  passwordHash  String   @map("password_hash") @db.VarChar(255)
+  avatarConfig  Json     @default("{\"body\":\"u1\",\"head\":\"none\"}") @map("avatar_config")
+  currentStreak Int      @default(0) @map("current_streak")
+  totalPlaytime Int      @default(0) @map("total_playtime")
+  lastPlayDate  DateTime? @map("last_play_date")
+  isAdmin       Boolean  @default(false) @map("is_admin")
+  createdAt     DateTime @default(now()) @map("created_at")
+  lastLogin     DateTime @default(now()) @map("last_login") @updatedAt
+  
+  sessions      Session[]
+  quizAttempts  QuizAttempt[]
+  achievements  Achievement[]
+  topicsStudied TopicStudied[]
+  
+  @@map("users")
+}
+
+model Session {
+  id                Int      @id @default(autoincrement())
+  userId            Int      @map("user_id")
+  sessionId         String   @unique @map("session_id") @db.VarChar(100)
+  startTime         DateTime @default(now()) @map("start_time")
+  endTime           DateTime? @map("end_time")
+  engagementScore   Int?     @map("engagement_score")
+  totalClicks       Int      @default(0) @map("total_clicks")
+  timePerState      Json     @default("{}") @map("time_per_state")
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stateTransitions  StateTransition[]
+  quizAttempts      QuizAttempt[]
+  
+  @@index([userId])
+  @@index([sessionId])
+  @@map("sessions")
+}
+
+model StateTransition {
+  id                 Int      @id @default(autoincrement())
+  sessionId          Int      @map("session_id")
+  fromState          String?  @map("from_state") @db.VarChar(50)
+  toState            String   @map("to_state") @db.VarChar(50)
+  timeInPrevious     Float    @map("time_in_previous")
+  transitionedAt     DateTime @default(now()) @map("transitioned_at")
+  
+  session            Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  @@index([sessionId])
+  @@map("state_transitions")
+}
+
+model QuizAttempt {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @map("user_id")
+  sessionId       Int      @map("session_id")
+  question        String   @db.Text
+  selectedAnswer  String   @map("selected_answer") @db.VarChar(255)
+  correctAnswer   String   @map("correct_answer") @db.VarChar(255)
+  isCorrect       Boolean  @map("is_correct")
+  topic           String   @db.VarChar(100)
+  answeredAt      DateTime @default(now()) @map("answered_at")
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session         Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([sessionId])
+  @@index([topic])
+  @@map("quiz_attempts")
+}
+
+model Achievement {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @map("user_id")
+  achievementId  String   @map("achievement_id") @db.VarChar(100)
+  earnedAt       DateTime @default(now()) @map("earned_at")
+  
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@map("achievements")
+}
+
+model TopicStudied {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @map("user_id")
+  topic      String   @db.VarChar(100)
+  studiedAt  DateTime @default(now()) @map("studied_at")
+  
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([topic])
+  @@map("topics_studied")
+}

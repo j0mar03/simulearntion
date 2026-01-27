@@ -1,0 +1,61 @@
+# Dependencies
+node_modules
+npm-debug.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+!README.md
+
+# Logs
+logs
+*.log
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+test
+tests
+*.test.js
+*.spec.js
+
+# Development files
+.prettierrc
+.eslintrc
+
+# Build artifacts
+dist
+build
+
+# Analytics and profiles (will use volumes)
+analytics_data
+player_profiles
+
+# Backups
+backups
+*.sql
+*.dump
+
+# Prisma migrations (keep schema, exclude migration files)
+# prisma/migrations
+
+# Docker files
+docker-compose.yml
+Dockerfile
+.dockerignore

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimuLearntion - Multiplayer</title>
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <!-- Phaser.js -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    
+    <!-- Socket.IO Client -->
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    
+    <!-- SuperGif (libgif.js) for GIF frame extraction -->
+    <script src="https://cdn.jsdelivr.net/gh/buzzfeed/libgif-js@master/libgif.js"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-content">
+            <h1>🎮 SimuLearntion</h1>
+            <p>Grade 12 Physics - Multiplayer Edition</p>
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Loading game assets...</p>
+        </div>
+    </div>
+    
+    <!-- Login/Register Modal -->
+    <div id="auth-modal" class="modal">
+        <div class="modal-content">
+            <h2>Welcome to SimuLearntion!</h2>
+            
+            <!-- Login Form -->
+            <div id="login-form" class="auth-form active">
+                <h3>Login</h3>
+                <form id="login-submit">
+                    <input type="text" id="login-username" placeholder="Username" required autocomplete="username">
+                    <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password">
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </form>
+                <p class="auth-switch">
+                    Don't have an account? <a href="#" id="show-register">Register</a>
+                </p>
+            </div>
+            
+            <!-- Register Form -->
+            <div id="register-form" class="auth-form">
+                <h3>Create Account</h3>
+                <form id="register-submit">
+                    <input type="text" id="register-username" placeholder="Username" required autocomplete="username">
+                    <input type="email" id="register-email" placeholder="Email" required autocomplete="email">
+                    <input type="password" id="register-password" placeholder="Password (min 6 characters)" required autocomplete="new-password">
+                    <button type="submit" class="btn btn-primary">Register</button>
+                </form>
+                <p class="auth-switch">
+                    Already have an account? <a href="#" id="show-login">Login</a>
+                </p>
+            </div>
+            
+            <!-- Error Message -->
+            <div id="auth-error" class="error-message" style="display:none;"></div>
+        </div>
+    </div>
+    
+    <!-- Game Container -->
+    <div id="game-container"></div>
+    
+    <!-- Chat UI (will be shown in-game) -->
+    <div id="chat-container" style="display:none;">
+        <div id="chat-messages"></div>
+        <div id="chat-input-container">
+            <input type="text" id="chat-input" placeholder="Press Enter to chat..." maxlength="200">
+        </div>
+    </div>
+    
+    <!-- Player List UI (will be shown in-game) -->
+    <div id="players-list" style="display:none;">
+        <h4>Online Players (<span id="player-count">0</span>)</h4>
+        <div id="players-list-content"></div>
+    </div>
+    
+    <!-- Notification Container -->
+    <div id="notification-container"></div>
+    
+    <!-- Load Game Scripts -->
+    <script src="/shared/constants.js"></script>
+    <script src="/js/config/animations.js"></script>
+    <script src="/js/utils/FrameAnimator.js"></script>
+    <script src="/js/utils/GIFAnimator.js"></script>
+    <script src="/js/utils/GIFPlayer.js"></script>
+    <script src="/js/network/SocketManager.js"></script>
+    <script src="/js/entities/Player.js"></script>
+    <script src="/js/entities/OtherPlayer.js"></script>
+    <script src="/js/ui/ChatBox.js"></script>
+    <script src="/js/ui/PlayerList.js"></script>
+    <script src="/js/scenes/BootScene.js"></script>
+    <script src="/js/scenes/LoginScene.js"></script>
+    <script src="/js/scenes/LobbyScene.js"></script>
+    <script src="/js/scenes/LibraryScene.js"></script>
+    <script src="/js/scenes/QuizScene.js"></script>
+    <script src="/js/scenes/CustomScene.js"></script>
+    <script src="/js/scenes/AchieveScene.js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html>

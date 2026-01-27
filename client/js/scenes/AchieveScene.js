@@ -1,0 +1,146 @@
+// Achievements Scene
+class AchieveScene extends Phaser.Scene {
+  constructor() {
+    super({ key: 'AchieveScene' });
+  }
+  
+  async create() {
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+    
+    // Background - Use real achievement UI image from "Compilations of gokgok simulator 2000"
+    const achieveBg = this.add.image(0, 0, 'achievement-bg').setOrigin(0);
+    achieveBg.setDisplaySize(width, height);
+    
+    // Title
+    this.add.text(width / 2, 30, 'Achievements & Unlocks', {
+      fontSize: '32px',
+      fill: '#ffffff',
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+      padding: { x: 10, y: 5 }
+    }).setOrigin(0.5).setDepth(10);
+    
+    // Back button - using real asset
+    const backBtn = this.add.image(50, 30, 'back-btn');
+    backBtn.setScale(0.15); // Much smaller size
+    backBtn.setInteractive({ useHandCursor: true });
+    backBtn.setDepth(10);
+    
+    backBtn.on('pointerdown', () => {
+      this.scene.start('LobbyScene');
+    });
+    
+    // Check if user is admin
+    const userData = this.game.userData || JSON.parse(localStorage.getItem('user') || '{}');
+    this.isAdmin = userData.isAdmin || false;
+    
+    // Load achievements from server
+    await this.loadAchievements();
+    
+    // Display achievements
+    this.displayAchievements();
+  }
+  
+  async loadAchievements() {
+    const token = localStorage.getItem('token');
+    
+    try {
+      const response = await fetch('/api/profile/achievements', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        this.earnedAchievements = data.achievements.map(a => a.achievementId);
+      } else {
+        this.earnedAchievements = [];
+      }
+    } catch (error) {
+      console.error('Failed to load achievements:', error);
+      this.earnedAchievements = [];
+    }
+  }
+  
+  displayAchievements() {
+    const width = this.cameras.main.width;
+    
+    // All possible achievements (from achievement manager)
+    const allAchievements = {
+      // Topic Mastery
+      'kinematics_master': { name: 'Kinematics Master', icon: '🎯', desc: 'Study Kinematics' },
+      'dynamics_master': { name: 'Dynamics Master', icon: '⚡', desc: 'Study Dynamics' },
+      'energy_master': { name: 'Energy Master', icon: '💫', desc: 'Study Work & Energy' },
+      
+      // Quiz Performance
+      'first_quiz': { name: 'Quiz Rookie', icon: '📝', desc: 'Complete first quiz' },
+      'quiz_ace': { name: 'Quiz Ace', icon: '🌟', desc: 'Score 80%+ on quiz' },
+      'perfect_score': { name: 'Perfect Score', icon: '👑', desc: 'Score 100% on quiz' },
+      'quiz_master': { name: 'Quiz Master', icon: '🏆', desc: 'Complete 10 quizzes' },
+      
+      // Streaks
+      'streak_3': { name: '3-Day Streak', icon: '🔥', desc: '3 days in a row' },
+      'streak_7': { name: '1-Week Streak', icon: '🔥🔥', desc: '7 days in a row' },
+      'streak_30': { name: '1-Month Streak', icon: '🔥🔥🔥', desc: '30 days in a row' },
+      
+      // Engagement
+      'customizer': { name: 'Customizer', icon: '🎨', desc: 'Customize avatar' },
+      'explorer': { name: 'Explorer', icon: '🗺️', desc: 'Visit all areas' },
+      'dedicated_learner': { name: 'Dedicated Learner', icon: '📚', desc: '1 hour playtime' }
+    };
+    
+    // Summary
+    // Admin users have all achievements unlocked
+    const earnedCount = this.isAdmin ? Object.keys(allAchievements).length : this.earnedAchievements.length;
+    const totalCount = Object.keys(allAchievements).length;
+    
+    this.add.text(width / 2, 80, `Earned: ${earnedCount}/${totalCount}${this.isAdmin ? ' (Admin)' : ''}`, {
+      fontSize: '20px',
+      fill: '#00aa00'
+    }).setOrigin(0.5);
+    
+    // Display achievements in grid
+    let yOffset = 130;
+    let xOffset = 50;
+    let column = 0;
+    
+    Object.entries(allAchievements).forEach(([id, achievement]) => {
+      // Admin users have all achievements unlocked
+      const earned = this.isAdmin || this.earnedAchievements.includes(id);
+      
+      // Achievement box
+      const box = this.add.rectangle(xOffset + 150, yOffset, 280, 70,
+        earned ? 0x90ee90 : 0xcccccc);
+      
+      // Icon
+      const icon = this.add.text(xOffset + 30, yOffset, 
+        earned ? achievement.icon : '🔒', {
+        fontSize: '24px'
+      }).setOrigin(0.5);
+      
+      // Name
+      const name = this.add.text(xOffset + 70, yOffset - 15, achievement.name, {
+        fontSize: '16px',
+        fill: earned ? '#000000' : '#666666',
+        fontStyle: earned ? 'bold' : 'normal'
+      });
+      
+      // Description
+      const desc = this.add.text(xOffset + 70, yOffset + 10, achievement.desc, {
+        fontSize: '12px',
+        fill: earned ? '#333333' : '#888888'
+      });
+      
+      // Move to next position
+      column++;
+      if (column >= 2) {
+        column = 0;
+        xOffset = 50;
+        yOffset += 90;
+      } else {
+        xOffset = 400;
+      }
+    });
+  }
+}

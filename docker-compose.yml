@@ -1,0 +1,85 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: gokgok-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-gokgok_db}
+      POSTGRES_USER: ${POSTGRES_USER:-gokgok_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gokgok2026}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    ports:
+      - "5432:5432"
+    networks:
+      - gokgok-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gokgok_user} -d ${POSTGRES_DB:-gokgok_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # GokGok Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gokgok-app
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${PORT:-3000}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-gokgok_user}:${POSTGRES_PASSWORD:-gokgok2026}@postgres:5432/${POSTGRES_DB:-gokgok_db}
+      JWT_SECRET: ${JWT_SECRET:-change-this-in-production-please-make-it-64-characters-long}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:3000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - gokgok-network
+    volumes:
+      # Mount for hot-reload in development (comment out in production)
+      # - ./server:/app/server
+      # - ./client:/app/client
+      # - ./shared:/app/shared
+      
+      # Analytics and profile data persistence
+      - analytics_data:/app/analytics_data
+      - player_profiles:/app/player_profiles
+    command: sh -c "npx prisma migrate deploy && node server/server.js"
+
+  # Nginx Reverse Proxy (Optional - for production)
+  nginx:
+    image: nginx:alpine
+    container_name: gokgok-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./client:/usr/share/nginx/html/client:ro
+    depends_on:
+      - app
+    networks:
+      - gokgok-network
+    profiles:
+      - production
+
+volumes:
+  postgres_data:
+    driver: local
+  analytics_data:
+    driver: local
+  player_profiles:
+    driver: local
+
+networks:
+  gokgok-network:
+    driver: bridge
