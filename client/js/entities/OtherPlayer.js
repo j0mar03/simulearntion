@@ -65,106 +65,53 @@ class OtherPlayer {
   async loadAnimation() {
     const frameRate = 24; // Faster animation speed (was 10, now 24 fps)
     
-    // Determine if this is a single-frame animation based on known multi-frame animations
-    // Multi-frame animations: base, cat, flower (have 10 extracted frames)
-    // All others (halo, sunglasses, uniforms, cape, scarf, combined) are single-frame and should use GIF
-    const multiFrameAnimations = ['anim-base', 'anim-cat', 'anim-flower'];
-    const isSingleFrame = !multiFrameAnimations.includes(this.animKey);
-    
-    // Also check frameAnimator config if available (for more accurate detection)
-    const frameConfig = frameAnimator?.frameConfigs.get(this.animKey);
-    const configIsSingleFrame = frameConfig && frameConfig.frameCount === 1;
-    const shouldUseGIF = isSingleFrame || configIsSingleFrame;
-    
-    // For single-frame animations, prefer GIF (which has multiple frames)
-    // For multi-frame animations, prefer extracted frames
-    if (shouldUseGIF) {
-      // Try GIF first for single-frame configs
-      if (gifAnimator) {
-        try {
-          const gifPath = gifAnimator.getGIFPath(this.animKey);
-          console.log(`Attempting to load GIF animation: ${this.animKey} from ${gifPath}`);
-          await gifAnimator.createAnimationFromGIF(this.animKey, gifPath, frameRate);
-          await new Promise(resolve => setTimeout(resolve, 200)); // Give more time for extraction
+    // Always prefer frame-based animations when available, then fall back to GIF.
+    if (frameAnimator && frameAnimator.frameConfigs.has(this.animKey)) {
+      try {
+        await frameAnimator.createAnimationFromFrames(this.animKey, frameRate);
+        if (this.scene.anims.exists(this.animKey)) {
+          this.currentAnimation = this.animKey;
           
-          // Check if animation was actually created with multiple frames
-          if (this.scene.anims.exists(this.animKey)) {
-            const anim = this.scene.anims.get(this.animKey);
-            if (anim.frames && anim.frames.length > 1) {
-              this.currentAnimation = this.animKey;
-              this.sprite.setVisible(true);
-              this.sprite.setAlpha(0.9);
-              console.log(`✅ Loaded GIF animation (${anim.frames.length} frames): ${this.animKey}`);
-              return;
-            } else {
-              console.warn(`GIF animation ${this.animKey} only has ${anim.frames?.length || 0} frame(s), trying fallback`);
+          // Set a visible static frame for idle state (before movement).
+          const anim = this.scene.anims.get(this.animKey);
+          if (anim && anim.frames && anim.frames.length > 0) {
+            const firstFrame = anim.frames[0];
+            const textureKey = firstFrame.key || firstFrame.textureKey;
+            if (textureKey && this.scene.textures.exists(textureKey)) {
+              this.sprite.setTexture(textureKey, 0);
             }
-          } else {
-            console.warn(`GIF animation ${this.animKey} was not created, trying fallback`);
           }
-        } catch (error) {
-          console.error(`GIF animation failed for ${this.animKey}:`, error);
-        }
-      }
-      
-      // Fallback: Ensure texture is set even if animation fails
-      // At least show the static GIF image
-      if (this.scene.textures.exists(this.animKey)) {
-        this.sprite.setTexture(this.animKey);
-        this.sprite.setVisible(true);
-        this.sprite.setAlpha(0.9);
-        console.log(`✅ Set texture for ${this.animKey} (animation may not be playing)`);
-      }
-      
-      // Try frame animator as last resort
-      if (frameAnimator && frameAnimator.frameConfigs.has(this.animKey)) {
-        try {
-          await frameAnimator.createAnimationFromFrames(this.animKey, frameRate);
-          if (this.scene.anims.exists(this.animKey)) {
-            this.currentAnimation = this.animKey;
-            this.sprite.setVisible(true);
-            this.sprite.setAlpha(0.9);
-            console.log(`✅ Loaded single-frame animation: ${this.animKey}`);
-            return;
-          }
-        } catch (error) {
-          console.warn('Single-frame animation failed:', error);
-        }
-      }
-    } else {
-      // For multi-frame animations, try Frame Animator first
-      if (frameAnimator && frameAnimator.frameConfigs.has(this.animKey)) {
-        try {
-          await frameAnimator.createAnimationFromFrames(this.animKey, frameRate);
-          if (this.scene.anims.exists(this.animKey)) {
-            this.currentAnimation = this.animKey;
-            this.sprite.setVisible(true);
-            this.sprite.setAlpha(0.9);
-            console.log(`✅ Loaded frame animation: ${this.animKey}`);
-            return;
-          }
-        } catch (error) {
-          console.warn('Frame animation failed, trying GIF:', error);
-        }
-      }
-      
-      // Try GIF Animator as fallback for multi-frame
-      if (gifAnimator) {
-        try {
-          const gifPath = gifAnimator.getGIFPath(this.animKey);
-          await gifAnimator.createAnimationFromGIF(this.animKey, gifPath, frameRate);
-          await new Promise(resolve => setTimeout(resolve, 100));
           
-          if (this.scene.anims.exists(this.animKey)) {
+          this.sprite.setVisible(true);
+          this.sprite.setAlpha(0.9);
+          console.log(`✅ Loaded frame animation: ${this.animKey}`);
+          return;
+        }
+      } catch (error) {
+        console.warn('Frame animation failed, trying GIF:', error);
+      }
+    }
+    
+    // Fallback: try GIF-based animation
+    if (gifAnimator) {
+      try {
+        const gifPath = gifAnimator.getGIFPath(this.animKey);
+        console.log(`Attempting to load GIF animation: ${this.animKey} from ${gifPath}`);
+        await gifAnimator.createAnimationFromGIF(this.animKey, gifPath, frameRate);
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        if (this.scene.anims.exists(this.animKey)) {
+          const anim = this.scene.anims.get(this.animKey);
+          if (anim.frames && anim.frames.length > 1) {
             this.currentAnimation = this.animKey;
             this.sprite.setVisible(true);
             this.sprite.setAlpha(0.9);
-            console.log(`✅ Loaded GIF animation: ${this.animKey}`);
+            console.log(`✅ Loaded GIF animation (${anim.frames.length} frames): ${this.animKey}`);
             return;
           }
-        } catch (error) {
-          console.warn('GIF animation failed:', error);
         }
+      } catch (error) {
+        console.error(`GIF animation failed for ${this.animKey}:`, error);
       }
     }
     
@@ -287,7 +234,17 @@ class OtherPlayer {
     
     // Ensure sprite has a valid texture
     if (!this.sprite.texture || this.sprite.texture.key === '__MISSING') {
-      if (this.scene.textures.exists(this.animKey)) {
+      // Prefer a frame from the current animation if available
+      if (this.currentAnimation && this.scene.anims.exists(this.currentAnimation)) {
+        const anim = this.scene.anims.get(this.currentAnimation);
+        if (anim && anim.frames && anim.frames.length > 0) {
+          const firstFrame = anim.frames[0];
+          const textureKey = firstFrame.key || firstFrame.textureKey;
+          if (textureKey && this.scene.textures.exists(textureKey)) {
+            this.sprite.setTexture(textureKey, 0);
+          }
+        }
+      } else if (this.scene.textures.exists(this.animKey)) {
         this.sprite.setTexture(this.animKey, 0);
         this.sprite.setFrame(0);
       } else if (this.scene.textures.exists('anim-base')) {
@@ -376,26 +333,9 @@ class OtherPlayer {
       this.sprite.setVisible(true);
       this.sprite.setAlpha(0.9);
     } else {
-      // When idle, stop animation and show first frame of texture
+      // When idle, stop animation but keep the last visible frame.
       if (this.sprite.anims.isPlaying) {
         this.sprite.anims.stop();
-      }
-      
-      // Always show the texture (first frame) when idle
-      let textureToUse = null;
-      if (this.scene.textures.exists(this.animKey)) {
-        textureToUse = this.animKey;
-      } else if (this.scene.textures.exists('anim-base')) {
-        textureToUse = 'anim-base';
-      }
-      
-      if (textureToUse) {
-        // Set texture and ensure it shows the first frame
-        this.sprite.setTexture(textureToUse, 0); // 0 = first frame
-        // Ensure the sprite frame is set correctly
-        if (this.sprite.frame) {
-          this.sprite.setFrame(0);
-        }
       }
       
       // Always ensure sprite is visible

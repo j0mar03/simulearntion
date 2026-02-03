@@ -66,10 +66,34 @@ class FrameAnimator {
             duration: 1000 / frameRate
           });
         }
-      } else if (config.framePath && config.frameCount) {
-        // Handle single frame (frame.png) or multiple frames (frame0.png, frame1.png, etc.)
-        if (config.frameCount === 1) {
-          // Single frame: try frame.png
+      } else if (config.framePath) {
+        // Prefer numbered frames regardless of frameCount:
+        // try frame0.png, frame1.png, ... up to a sensible maximum.
+        let loadedAnyNumberedFrame = false;
+        const maxFrames = 20; // hard cap for safety
+        
+        for (let i = 0; i < maxFrames; i++) {
+          const framePath = `${config.framePath}${i}.png`;
+          const frameKey = `${animKey}-frame-${i}`;
+          
+          try {
+            if (!this.scene.textures.exists(frameKey)) {
+              await this.loadFrameImage(framePath, frameKey);
+            }
+            frames.push({
+              key: frameKey,
+              frame: 0,
+              duration: 1000 / frameRate
+            });
+            loadedAnyNumberedFrame = true;
+          } catch (error) {
+            // Skip missing frames but continue trying higher indices
+            continue;
+          }
+        }
+        
+        // If no numbered frames were found at all, fall back to single frame.png
+        if (!loadedAnyNumberedFrame) {
           const singleFramePath = config.framePath + '.png';
           const frameKey = `${animKey}-frame-0`;
           
@@ -85,28 +109,6 @@ class FrameAnimator {
           } catch (error) {
             console.warn(`Failed to load single frame: ${singleFramePath}`);
             throw error;
-          }
-        } else {
-          // Multiple frames: load frame0.png, frame1.png, etc.
-          for (let i = 0; i < config.frameCount; i++) {
-            const framePath = `${config.framePath}${i}.png`;
-            const frameKey = `${animKey}-frame-${i}`;
-            
-            try {
-              if (!this.scene.textures.exists(frameKey)) {
-                await this.loadFrameImage(framePath, frameKey);
-              }
-              frames.push({
-                key: frameKey,
-                frame: 0,
-                duration: 1000 / frameRate
-              });
-            } catch (error) {
-              console.warn(`Failed to load frame ${i}: ${framePath}`);
-              // Stop if we can't load frames
-              if (i === 0) throw error;
-              break;
-            }
           }
         }
       }
