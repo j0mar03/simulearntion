@@ -151,6 +151,7 @@ async function initializeGame() {
       
       game.userData = userData;
       game.token = token;
+      window.game = game;
       
       console.log('Phaser game created, userData:', userData);
     } else {
@@ -169,6 +170,7 @@ async function initializeGame() {
         game.userData = userData;
         console.log('Updated existing game.userData:', game.userData);
       }
+      window.game = game;
     }
     
     // Connect to socket

@@ -307,6 +307,47 @@ function initializeSocketHandler(io) {
       }
     });
     
+    // Private message (direct)
+    socket.on('private-message', (data) => {
+      const { to, message } = data || {};
+      
+      if (!message || !message.trim()) return;
+      
+      // Find recipient by username (string) or userId (if provided)
+      const recipient =
+        (typeof to === 'object' && to && to.userId && roomManager.findPlayerByUserId(to.userId)) ||
+        (typeof to === 'string' && roomManager.findPlayerByUsername(to)) ||
+        (typeof to === 'number' && roomManager.findPlayerByUserId(to));
+      
+      if (!recipient) {
+        socket.emit('private-message', {
+          error: 'User not found or not online.',
+          fromUserId: socket.userId,
+          fromUsername: socket.username,
+          to: to,
+          message: message.trim().substring(0, 200),
+          timestamp: Date.now(),
+          private: true,
+          system: true
+        });
+        return;
+      }
+      
+      const payload = {
+        fromUserId: socket.userId,
+        fromUsername: socket.username,
+        toUserId: recipient.player.userId,
+        toUsername: recipient.player.username,
+        message: message.trim().substring(0, 200),
+        timestamp: Date.now(),
+        private: true
+      };
+      
+      // Send to recipient and echo to sender
+      socket.to(recipient.socketId).emit('private-message', payload);
+      socket.emit('private-message', payload);
+    });
+    
     // Topic selection in library
     socket.on('study-topic', (data) => {
       const { topic } = data;

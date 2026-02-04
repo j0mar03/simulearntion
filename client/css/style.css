@@ -189,6 +189,16 @@ body {
     z-index: 100;
 }
 
+#chat-reply-indicator {
+    color: #ffffff;
+    background: rgba(102,126,234,0.25);
+    border: 1px solid rgba(102,126,234,0.45);
+    border-radius: 6px;
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
 #chat-messages {
     height: 200px;
     overflow-y: auto;
@@ -207,6 +217,21 @@ body {
 .chat-message .username {
     color: #667eea;
     font-weight: bold;
+}
+ 
+.chat-message.private-message {
+    background: rgba(102,126,234,0.25);
+    border: 1px solid rgba(102,126,234,0.4);
+}
+
+.player-item {
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 6px;
+}
+
+.player-item:hover {
+    background: rgba(102,126,234,0.2);
 }
 
 #chat-input-container {

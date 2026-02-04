@@ -79,12 +79,18 @@ class Player {
       this.nameText.setOrigin(0.5);
       this.nameText.setDepth(1000); // Always on top
       
-      // Movement properties
-      this.speed = 160;
-      this.facing = 'right';
-      this.isMoving = false;
-      this.currentAnimation = null;
-      this.loadingAnimation = false;
+    // Movement properties
+    this.speed = 160;
+    this.facing = 'right';
+    this.isMoving = false;
+    this.currentAnimation = null;
+    this.loadingAnimation = false;
+    
+    // Network movement tracking (avoid per-frame spam)
+    this.lastSentX = x;
+    this.lastSentY = y;
+    this.lastSentFacing = this.facing;
+    this.lastSentAt = 0;
       
       // Input
       try {
@@ -277,9 +283,6 @@ class Player {
       }
     }
     
-    const prevX = this.sprite.x;
-    const prevY = this.sprite.y;
-    
     // Reset velocity
     this.sprite.body.setVelocity(0);
     this.isMoving = false;
@@ -368,9 +371,20 @@ class Player {
     // Update name label position
     this.nameText.setPosition(this.sprite.x, this.sprite.y - 60);
     
-    // Send position to server if moved
-    if (prevX !== this.sprite.x || prevY !== this.sprite.y) {
+    // Send position to server if moved (track last sent, not same-frame position)
+    const dx = this.sprite.x - this.lastSentX;
+    const dy = this.sprite.y - this.lastSentY;
+    const movedEnough = Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5;
+    const facingChanged = this.facing !== this.lastSentFacing;
+    const now = this.scene && this.scene.time ? this.scene.time.now : Date.now();
+    const timeSinceLast = now - this.lastSentAt;
+    
+    if ((movedEnough || facingChanged) && timeSinceLast > 50) {
       socketManager.sendMove(this.sprite.x, this.sprite.y, this.facing);
+      this.lastSentX = this.sprite.x;
+      this.lastSentY = this.sprite.y;
+      this.lastSentFacing = this.facing;
+      this.lastSentAt = now;
     }
   }
   

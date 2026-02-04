@@ -63,6 +63,9 @@ class SocketManager {
   
   // Movement
   sendMove(x, y, facing) {
+    if (window.DEBUG_MOVES) {
+      console.log('➡️ send player-move', { x, y, facing });
+    }
     this.socket.emit('player-move', { x, y, facing });
   }
   
@@ -82,6 +85,11 @@ class SocketManager {
   // Chat
   sendChatMessage(message) {
     this.socket.emit('chat-message', { message });
+  }
+  
+  // Private message
+  sendPrivateMessage(to, message) {
+    this.socket.emit('private-message', { to, message });
   }
   
   // Study
@@ -139,6 +147,9 @@ class SocketManager {
     });
     
     this.socket.on('player-moved', (data) => {
+      if (window.DEBUG_MOVES) {
+        console.log('⬅️ recv player-moved', data);
+      }
       if (scene.onPlayerMoved) scene.onPlayerMoved(data);
     });
     
@@ -171,6 +182,13 @@ class SocketManager {
         window.chatBox.addMessage(data);
       }
     });
+    
+    this.socket.on('private-message', (data) => {
+      if (scene.onPrivateMessage) scene.onPrivateMessage(data);
+      if (window.chatBox && window.chatBox.addMessage) {
+        window.chatBox.addMessage(data);
+      }
+    });
   }
   
   // Remove scene listeners
@@ -186,6 +204,7 @@ class SocketManager {
     this.socket.off('player-quiz-progress');
     this.socket.off('player-achievement');
     this.socket.off('chat-message');
+    this.socket.off('private-message');
   }
   
   // Show notification

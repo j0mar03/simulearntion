@@ -272,9 +272,38 @@ class LibraryScene extends Phaser.Scene {
   }
   
   onPlayerMoved(data) {
-    const otherPlayer = this.otherPlayers.get(data.socketId);
+    let otherPlayer = this.otherPlayers.get(data.socketId);
+    
+    // If not found by socketId, try by userId
+    if (!otherPlayer && data.userId) {
+      for (const [socketId, player] of this.otherPlayers.entries()) {
+        if (player.userId === data.userId) {
+          otherPlayer = player;
+          break;
+        }
+      }
+    }
+    
     if (otherPlayer) {
       otherPlayer.setTargetPosition(data.x, data.y, data.facing);
+    } else if (data.userId && data.userId !== this.game.userData.id) {
+      // Create player if we missed join event
+      const playerData = {
+        socketId: data.socketId,
+        userId: data.userId,
+        username: data.username,
+        avatarConfig: { body: 'u1', head: 'none' },
+        x: data.x !== undefined && !isNaN(data.x) ? data.x : 250,
+        y: data.y !== undefined && !isNaN(data.y) ? data.y : 400,
+        facing: data.facing || 'right'
+      };
+      
+      try {
+        const newPlayer = new OtherPlayer(this, playerData);
+        this.otherPlayers.set(data.socketId || data.userId, newPlayer);
+      } catch (error) {
+        console.error('Error creating missing player in library:', error);
+      }
     }
   }
   

@@ -5,6 +5,29 @@ class PlayerList {
     this.countSpan = document.getElementById('player-count');
     this.contentDiv = document.getElementById('players-list-content');
     this.players = new Map();
+    
+    // Event delegation for player clicks
+    this.contentDiv.addEventListener('click', (e) => {
+      const item = e.target.closest('.player-item');
+      if (!item) return;
+      
+      const playerId = item.dataset.playerId;
+      const player = this.players.get(playerId);
+      if (!player) return;
+      
+      try {
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        if (player.userId && currentUser.id && player.userId === currentUser.id) {
+          return;
+        }
+        if (window.chatBox && window.chatBox.input) {
+          window.chatBox.input.value = `/pm ${player.username} `;
+          window.chatBox.input.focus();
+        }
+      } catch (error) {
+        console.error('Error starting private message:', error);
+      }
+    });
   }
   
   updatePlayers(players) {

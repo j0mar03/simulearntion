@@ -112,6 +112,45 @@ class RoomManager {
     
     return stats;
   }
+  
+  /**
+   * Find a player by username across all rooms (case-insensitive exact match)
+   * @param {string} username
+   * @returns {object|null} { roomName, socketId, player }
+   */
+  findPlayerByUsername(username) {
+    if (!username) return null;
+    const needle = username.toLowerCase();
+    
+    for (const [roomName, players] of Object.entries(this.rooms)) {
+      for (const [socketId, player] of players.entries()) {
+        if ((player.username || '').toLowerCase() === needle) {
+          return { roomName, socketId, player };
+        }
+      }
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Find a player by userId across all rooms
+   * @param {string|number} userId
+   * @returns {object|null} { roomName, socketId, player }
+   */
+  findPlayerByUserId(userId) {
+    if (!userId) return null;
+    
+    for (const [roomName, players] of Object.entries(this.rooms)) {
+      for (const [socketId, player] of players.entries()) {
+        if (player.userId === userId) {
+          return { roomName, socketId, player };
+        }
+      }
+    }
+    
+    return null;
+  }
 }
 
 module.exports = RoomManager;
