@@ -35,7 +35,7 @@ class LoginScene extends Phaser.Scene {
     welcomeText.setOrigin(0.5);
     
     // Instructions
-    const instructionsText = this.add.text(width / 2, height / 2 + 80, 'Press SPACE to enter the lobby', {
+    const instructionsText = this.add.text(width / 2, height / 2 + 80, 'Press SPACE to begin the tour', {
       fontSize: '18px',
       fill: '#cccccc'
     });
@@ -50,15 +50,17 @@ class LoginScene extends Phaser.Scene {
       repeat: -1
     });
     
+    const shouldSkipTour = localStorage.getItem('skipTour') === 'true';
+    
     // Space key to start
     this.input.keyboard.once('keydown-SPACE', () => {
-      this.scene.start('LobbyScene');
+      this.scene.start(shouldSkipTour ? 'LobbyScene' : 'OnboardingScene1');
     });
     
     // Auto-start after 3 seconds
     this.time.delayedCall(3000, () => {
       if (this.scene.isActive()) {
-        this.scene.start('LobbyScene');
+        this.scene.start(shouldSkipTour ? 'LobbyScene' : 'OnboardingScene1');
       }
     });
   }

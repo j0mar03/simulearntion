@@ -364,8 +364,15 @@ class CustomScene extends Phaser.Scene {
         this.previewHead = null;
       }
       
-      // Return to lobby - position will be restored from saved position in game.userData
-      this.scene.start('LobbyScene');
+      // Return to onboarding (if active) or lobby
+      const onboardingReturn = this.game.userData && this.game.userData.onboardingReturnScene;
+      if (onboardingReturn) {
+        this.game.userData.onboardingReturnScene = null;
+        this.scene.start(onboardingReturn);
+      } else {
+        // Return to lobby - position will be restored from saved position in game.userData
+        this.scene.start('LobbyScene');
+      }
     } catch (error) {
       console.error('Error in saveAndExit:', error);
       // Force return to lobby even if there's an error

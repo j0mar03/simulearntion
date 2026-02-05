@@ -36,6 +36,10 @@ const config = {
   scene: [
     BootScene,
     LoginScene,
+    OnboardingScene1,
+    OnboardingScene2,
+    OnboardingScene3,
+    OnboardingScene4,
     LobbyScene,
     LibraryScene,
     QuizScene,
@@ -171,6 +175,11 @@ async function initializeGame() {
         console.log('Updated existing game.userData:', game.userData);
       }
       window.game = game;
+
+      // If a game instance already exists, force the login/onboarding flow
+      if (game.scene && !game.scene.isActive('LoginScene')) {
+        game.scene.start('LoginScene');
+      }
     }
     
     // Connect to socket
@@ -261,6 +270,14 @@ function setupAuthHandlers() {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         
+        // Reset skip tour when a different user logs in
+        const lastUserKey = localStorage.getItem('lastTourUser');
+        const currentUserKey = data.user && (data.user.id || data.user.username || '');
+        if (!lastUserKey || lastUserKey !== String(currentUserKey)) {
+          localStorage.setItem('skipTour', 'false');
+          localStorage.setItem('lastTourUser', String(currentUserKey));
+        }
+        
         // Initialize game
         initializeGame();
       } else {
@@ -293,6 +310,13 @@ function setupAuthHandlers() {
         // Save token and user data
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
+        
+        // New user should always see the tour
+        const currentUserKey = data.user && (data.user.id || data.user.username || '');
+        localStorage.setItem('skipTour', 'false');
+        if (currentUserKey) {
+          localStorage.setItem('lastTourUser', String(currentUserKey));
+        }
         
         // Initialize game
         initializeGame();
@@ -338,6 +362,8 @@ async function verifyToken(token) {
 function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
+  // Keep skipTour but clear lastTourUser to ensure new users see the tour
+  localStorage.removeItem('lastTourUser');
   socketManager.disconnect();
   window.location.reload();
 }
