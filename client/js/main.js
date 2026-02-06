@@ -94,6 +94,13 @@ async function initializeGame() {
           userData.username = profileData.username;
         }
         
+        if (profileData.currentTitle) {
+          userData.currentTitle = profileData.currentTitle;
+        }
+        if (Array.isArray(profileData.titles)) {
+          userData.titles = profileData.titles;
+        }
+        
         // Ensure id exists
         if (!userData.id && profileData.id) {
           userData.id = profileData.id;
@@ -119,6 +126,11 @@ async function initializeGame() {
         const userData = JSON.parse(localStorage.getItem('user') || '{}');
         userData.unlockedItems = userData.unlockedItems || {};
         userData.isAdmin = userData.isAdmin || false;
+        if (!userData.currentTitle) {
+          userData.currentTitle = window.DEFAULT_PLAYER_TITLE || 'Rookie';
+        }
+        userData.titles = userData.titles || [];
+        userData.achievements = userData.achievements || [];
         localStorage.setItem('user', JSON.stringify(userData));
       });
     }
@@ -152,6 +164,15 @@ async function initializeGame() {
       if (userData.isAdmin === undefined) {
         userData.isAdmin = false;
       }
+      if (!userData.currentTitle) {
+        userData.currentTitle = window.DEFAULT_PLAYER_TITLE || 'Rookie';
+      }
+      if (!userData.titles) {
+        userData.titles = [];
+      }
+      if (!userData.achievements) {
+        userData.achievements = [];
+      }
       
       game.userData = userData;
       game.token = token;
@@ -170,6 +191,15 @@ async function initializeGame() {
         }
         if (!userData.unlockedItems) {
           userData.unlockedItems = {};
+        }
+        if (!userData.currentTitle) {
+          userData.currentTitle = window.DEFAULT_PLAYER_TITLE || 'Rookie';
+        }
+        if (!userData.titles) {
+          userData.titles = [];
+        }
+        if (!userData.achievements) {
+          userData.achievements = [];
         }
         game.userData = userData;
         console.log('Updated existing game.userData:', game.userData);
@@ -190,8 +220,10 @@ async function initializeGame() {
     // Show chat and player list
     const chatContainer = document.getElementById('chat-container');
     const playersList = document.getElementById('players-list');
+    const profileOpen = document.getElementById('profile-open');
     if (chatContainer) chatContainer.style.display = 'block';
     if (playersList) playersList.style.display = 'block';
+    if (profileOpen) profileOpen.style.display = 'block';
     
     // Initialize chat box (only create once)
     if (typeof ChatBox !== 'undefined' && !window.chatBox) {
@@ -199,6 +231,9 @@ async function initializeGame() {
     }
     if (typeof PlayerList !== 'undefined' && !window.playerList) {
       window.playerList = new PlayerList();
+    }
+    if (typeof ProfileModal !== 'undefined' && !window.profileModal) {
+      window.profileModal = new ProfileModal();
     }
     
     console.log('✅ Game initialized successfully');

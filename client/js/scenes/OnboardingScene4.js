@@ -15,17 +15,18 @@ class OnboardingScene4 extends Phaser.Scene {
     bg.setDisplaySize(width, height);
     
     // Portraits
-    const principal = this.add.image(120, height - 200, 'principal-avatar');
-    principal.setScale(0.3);
-    principal.setDepth(2);
+    const principal = this.add.image(120, height - 210, 'principal-avatar');
+    principal.setScale(0.22);
+    principal.setDepth(1);
     
-    const sumi = this.add.image(width - 120, height - 200, 'sumi-avatar');
-    sumi.setScale(0.3);
-    sumi.setDepth(2);
+    const sumi = this.add.image(width - 120, height - 210, 'sumi-avatar');
+    sumi.setScale(0.22);
+    sumi.setDepth(1);
     
     // Dialog box
     const dialogBox = this.add.rectangle(width / 2, height - 120, width - 80, 140, 0x000000, 0.75);
     dialogBox.setStrokeStyle(2, 0xffffff, 0.2);
+    dialogBox.setDepth(5);
     
     const dialogText = [
       "and that’s it! you’re officially part of the school!",
@@ -37,7 +38,7 @@ class OnboardingScene4 extends Phaser.Scene {
       fontSize: '16px',
       fill: '#ffffff',
       wordWrap: { width: width - 260 }
-    }).setOrigin(0, 0);
+    }).setOrigin(0, 0).setDepth(6);
     
     // Start Game button
     const startBtn = this.add.rectangle(width / 2, height - 260, 180, 48, 0x00c853);

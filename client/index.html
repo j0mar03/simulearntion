@@ -80,6 +80,35 @@
         <h4>Online Players (<span id="player-count">0</span>)</h4>
         <div id="players-list-content"></div>
     </div>
+
+    <!-- Profile Button -->
+    <button id="profile-open" style="display:none;">Profile</button>
+
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="profile-modal">
+        <div class="profile-modal-content">
+            <div class="profile-modal-header">
+                <h3>Profile</h3>
+                <button id="profile-close" class="profile-close" aria-label="Close profile">×</button>
+            </div>
+            <div class="profile-row">
+                <span>Username</span>
+                <span id="profile-username">Player</span>
+            </div>
+            <div class="profile-row">
+                <span>Achievements</span>
+                <span id="profile-achievement-count">0/0</span>
+            </div>
+            <div class="profile-row">
+                <span>Current Title</span>
+                <span id="profile-current-title">Rookie</span>
+            </div>
+            <div class="profile-row">
+                <label for="profile-title-select">Display Title</label>
+                <select id="profile-title-select"></select>
+            </div>
+        </div>
+    </div>
     
     <!-- Notification Container -->
     <div id="notification-container"></div>
@@ -95,6 +124,7 @@
     <script src="/js/entities/OtherPlayer.js"></script>
     <script src="/js/ui/ChatBox.js"></script>
     <script src="/js/ui/PlayerList.js"></script>
+    <script src="/js/ui/ProfileModal.js"></script>
     <script src="/js/scenes/BootScene.js"></script>
     <script src="/js/scenes/LoginScene.js"></script>
     <script src="/js/scenes/OnboardingScene1.js"></script>

@@ -15,13 +15,14 @@ class OnboardingScene3 extends Phaser.Scene {
     hallwayBg.setDisplaySize(width, height);
     
     // Sumi portrait
-    const sumi = this.add.image(140, height - 190, 'sumi-avatar');
-    sumi.setScale(0.35);
-    sumi.setDepth(2);
+    const sumi = this.add.image(140, height - 205, 'sumi-avatar');
+    sumi.setScale(0.24);
+    sumi.setDepth(1);
     
     // Dialog box
     const dialogBox = this.add.rectangle(width / 2, height - 120, width - 80, 140, 0x000000, 0.75);
     dialogBox.setStrokeStyle(2, 0xffffff, 0.2);
+    dialogBox.setDepth(5);
     
     const dialogText = [
       "hey. i'm sumi, your counselor. let’s build your avatar.",
@@ -38,7 +39,7 @@ class OnboardingScene3 extends Phaser.Scene {
       fontSize: '15px',
       fill: '#ffffff',
       wordWrap: { width: width - 270 }
-    }).setOrigin(0, 0);
+    }).setOrigin(0, 0).setDepth(6);
     
     // Simple highlight placeholders
     const highlight1 = this.add.rectangle(width - 180, 150, 220, 90);

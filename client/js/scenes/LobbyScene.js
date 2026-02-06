@@ -186,7 +186,8 @@ class LobbyScene extends Phaser.Scene {
       }
       
       // Create player at saved position or default
-      this.player = new Player(this, playerX, playerY, userData.username, userData.avatarConfig);
+      const playerTitle = userData.currentTitle || userData.title || (window.DEFAULT_PLAYER_TITLE || 'Rookie');
+      this.player = new Player(this, playerX, playerY, userData.username, userData.avatarConfig, playerTitle);
       
       if (!this.player || !this.player.sprite) {
         throw new Error('Player creation failed');
@@ -197,7 +198,8 @@ class LobbyScene extends Phaser.Scene {
       console.error('Error creating player:', error);
       // Create a minimal player as fallback
       try {
-        this.player = new Player(this, 400, 300, 'Player', { body: 'u1', head: 'none' });
+        const fallbackTitle = window.DEFAULT_PLAYER_TITLE || 'Rookie';
+        this.player = new Player(this, 400, 300, 'Player', { body: 'u1', head: 'none' }, fallbackTitle);
       } catch (fallbackError) {
         console.error('Fallback player creation also failed:', fallbackError);
         // Don't create player - scene will still work for buttons

@@ -15,13 +15,14 @@ class OnboardingScene2 extends Phaser.Scene {
     gardenBg.setDisplaySize(width, height);
     
     // Principal portrait
-    const principal = this.add.image(110, height - 190, 'principal-avatar');
-    principal.setScale(0.32);
-    principal.setDepth(2);
+    const principal = this.add.image(110, height - 205, 'principal-avatar');
+    principal.setScale(0.23);
+    principal.setDepth(1);
     
     // Dialog box
     const dialogBox = this.add.rectangle(width / 2, height - 120, width - 80, 140, 0x000000, 0.7);
     dialogBox.setStrokeStyle(2, 0xffffff, 0.2);
+    dialogBox.setDepth(5);
     
     const dialogText = [
       "here's the basics:",
@@ -38,7 +39,7 @@ class OnboardingScene2 extends Phaser.Scene {
       fontSize: '15px',
       fill: '#ffffff',
       wordWrap: { width: width - 260 }
-    }).setOrigin(0, 0);
+    }).setOrigin(0, 0).setDepth(6);
     
     // UI highlight boxes
     const highlights = [

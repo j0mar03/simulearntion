@@ -1,8 +1,10 @@
 // Player Entity (Local Player)
 class Player {
-  constructor(scene, x, y, username, avatarConfig) {
+  constructor(scene, x, y, username, avatarConfig, title) {
     this.scene = scene;
     this.username = username || 'Player';
+    const fallbackTitle = window.DEFAULT_PLAYER_TITLE || 'Rookie';
+    this.title = title || (scene && scene.game && scene.game.userData && scene.game.userData.currentTitle) || fallbackTitle;
     
     // Ensure avatarConfig is valid
     if (!avatarConfig || typeof avatarConfig !== 'object') {
@@ -70,7 +72,7 @@ class Player {
       }
       
       // Create name label
-      this.nameText = scene.add.text(x, y - 60, this.username, {
+      this.nameText = scene.add.text(x, y - 70, this.username, {
         fontSize: '14px',
         fill: '#ffffff',
         backgroundColor: '#000000',
@@ -78,6 +80,16 @@ class Player {
       });
       this.nameText.setOrigin(0.5);
       this.nameText.setDepth(1000); // Always on top
+      
+      // Create title label
+      this.titleText = scene.add.text(x, y - 52, this.title, {
+        fontSize: '12px',
+        fill: '#ffd700',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        padding: { x: 4, y: 1 }
+      });
+      this.titleText.setOrigin(0.5);
+      this.titleText.setDepth(1000);
       
     // Movement properties
     this.speed = 160;
@@ -113,6 +125,7 @@ class Player {
       this.sprite = null;
       this.cursors = null;
       this.nameText = null;
+      this.titleText = null;
       // Don't throw - allow scene to continue
     }
   }
@@ -369,7 +382,10 @@ class Player {
     }
     
     // Update name label position
-    this.nameText.setPosition(this.sprite.x, this.sprite.y - 60);
+    this.nameText.setPosition(this.sprite.x, this.sprite.y - 70);
+    if (this.titleText) {
+      this.titleText.setPosition(this.sprite.x, this.sprite.y - 52);
+    }
     
     // Send position to server if moved (track last sent, not same-frame position)
     const dx = this.sprite.x - this.lastSentX;
@@ -390,11 +406,25 @@ class Player {
   
   setPosition(x, y) {
     this.sprite.setPosition(x, y);
-    this.nameText.setPosition(x, y - 60);
+    this.nameText.setPosition(x, y - 70);
+    if (this.titleText) {
+      this.titleText.setPosition(x, y - 52);
+    }
+  }
+  
+  setTitle(title) {
+    if (!title) return;
+    this.title = title;
+    if (this.titleText) {
+      this.titleText.setText(title);
+    }
   }
   
   destroy() {
     this.sprite.destroy();
     this.nameText.destroy();
+    if (this.titleText) {
+      this.titleText.destroy();
+    }
   }
 }

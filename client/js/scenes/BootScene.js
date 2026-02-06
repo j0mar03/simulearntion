@@ -59,12 +59,12 @@ class BootScene extends Phaser.Scene {
     this.load.image('quiz-bg', '/assets/images/Game 2 UI Layout.png');
     this.load.image('customization-bg', '/assets/images/Avatar Customization.png');
     this.load.image('achievement-bg', '/assets/images/achievementUI.png');
-    this.load.image('garden-bg', '/assets/images/garden.png');
+    this.load.image('garden-bg', '/assets/images/Gardenv1.jpg');
     this.load.image('onboarding1-bg', '/assets/images/onboardingscene1.png');
 
     // --- CHARACTER PORTRAITS ---
-    this.load.image('principal-avatar', '/assets/avatar/principal.png');
-    this.load.image('sumi-avatar', '/assets/avatar/sumi.png');
+    this.load.image('principal-avatar', '/assets/npc icons/principal_racco_default.png');
+    this.load.image('sumi-avatar', '/assets/npc icons/councilor_sumi_default.png');
     
     // --- UI BUTTONS ---
     this.load.image('back-btn', '/assets/images/back button.png');

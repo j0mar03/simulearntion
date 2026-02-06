@@ -22,13 +22,14 @@ class OnboardingScene1 extends Phaser.Scene {
     }).setOrigin(0.5);
     
     // Principal portrait
-    const principal = this.add.image(140, height - 200, 'principal-avatar');
-    principal.setScale(0.35);
-    principal.setDepth(2);
+    const principal = this.add.image(140, height - 210, 'principal-avatar');
+    principal.setScale(0.24);
+    principal.setDepth(1);
     
     // Dialog box
     const dialogBox = this.add.rectangle(width / 2, height - 120, width - 80, 140, 0x000000, 0.7);
     dialogBox.setStrokeStyle(2, 0xffffff, 0.2);
+    dialogBox.setDepth(5);
     
     const dialogText = [
       'hey there, newcomer! welcome to Simulearntion!',
@@ -41,7 +42,7 @@ class OnboardingScene1 extends Phaser.Scene {
       fontSize: '16px',
       fill: '#ffffff',
       wordWrap: { width: width - 280 }
-    }).setOrigin(0, 0);
+    }).setOrigin(0, 0).setDepth(6);
 
     // Skip tour option (for returning players)
     const skipText = this.add.text(width - 40, 24, 'Skip Tour', {

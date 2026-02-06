@@ -66,29 +66,7 @@ class AchieveScene extends Phaser.Scene {
   displayAchievements() {
     const width = this.cameras.main.width;
     
-    // All possible achievements (from achievement manager)
-    const allAchievements = {
-      // Topic Mastery
-      'kinematics_master': { name: 'Kinematics Master', icon: '🎯', desc: 'Study Kinematics' },
-      'dynamics_master': { name: 'Dynamics Master', icon: '⚡', desc: 'Study Dynamics' },
-      'energy_master': { name: 'Energy Master', icon: '💫', desc: 'Study Work & Energy' },
-      
-      // Quiz Performance
-      'first_quiz': { name: 'Quiz Rookie', icon: '📝', desc: 'Complete first quiz' },
-      'quiz_ace': { name: 'Quiz Ace', icon: '🌟', desc: 'Score 80%+ on quiz' },
-      'perfect_score': { name: 'Perfect Score', icon: '👑', desc: 'Score 100% on quiz' },
-      'quiz_master': { name: 'Quiz Master', icon: '🏆', desc: 'Complete 10 quizzes' },
-      
-      // Streaks
-      'streak_3': { name: '3-Day Streak', icon: '🔥', desc: '3 days in a row' },
-      'streak_7': { name: '1-Week Streak', icon: '🔥🔥', desc: '7 days in a row' },
-      'streak_30': { name: '1-Month Streak', icon: '🔥🔥🔥', desc: '30 days in a row' },
-      
-      // Engagement
-      'customizer': { name: 'Customizer', icon: '🎨', desc: 'Customize avatar' },
-      'explorer': { name: 'Explorer', icon: '🗺️', desc: 'Visit all areas' },
-      'dedicated_learner': { name: 'Dedicated Learner', icon: '📚', desc: '1 hour playtime' }
-    };
+    const allAchievements = window.ACHIEVEMENTS || {};
     
     // Summary
     // Admin users have all achievements unlocked

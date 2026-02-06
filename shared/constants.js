@@ -193,17 +193,46 @@ const GAME_CONFIG = {
   MAX_PLAYERS_PER_ROOM: 20
 };
 
+const DEFAULT_PLAYER_TITLE = 'Rookie';
+
+const ACHIEVEMENTS = {
+  // Topic Mastery
+  'kinematics_master': { name: 'Kinematics Master', icon: '🎯', desc: 'Study Kinematics', title: 'Kinematics Master' },
+  'dynamics_master': { name: 'Dynamics Master', icon: '⚡', desc: 'Study Dynamics', title: 'Dynamics Master' },
+  'energy_master': { name: 'Energy Master', icon: '💫', desc: 'Study Work & Energy', title: 'Energy Sage' },
+  
+  // Quiz Performance
+  'first_quiz': { name: 'Quiz Rookie', icon: '📝', desc: 'Complete first quiz', title: 'Quiz Rookie' },
+  'quiz_ace': { name: 'Quiz Ace', icon: '🌟', desc: 'Score 80%+ on quiz', title: 'Quiz Ace' },
+  'perfect_score': { name: 'Perfect Score', icon: '👑', desc: 'Score 100% on quiz', title: 'Crowned Scholar' },
+  'quiz_master': { name: 'Quiz Master', icon: '🏆', desc: 'Complete 10 quizzes', title: 'Quiz Master' },
+  
+  // Streaks
+  'streak_3': { name: '3-Day Streak', icon: '🔥', desc: '3 days in a row', title: 'Streak Starter' },
+  'streak_7': { name: '1-Week Streak', icon: '🔥🔥', desc: '7 days in a row', title: 'Week Warrior' },
+  'streak_30': { name: '1-Month Streak', icon: '🔥🔥🔥', desc: '30 days in a row', title: 'Consistency Legend' },
+  
+  // Engagement
+  'customizer': { name: 'Customizer', icon: '🎨', desc: 'Customize avatar', title: 'Style Crafter' },
+  'explorer': { name: 'Explorer', icon: '🗺️', desc: 'Visit all areas', title: 'World Explorer' },
+  'dedicated_learner': { name: 'Dedicated Learner', icon: '📚', desc: '1 hour playtime', title: 'Dedicated Learner' }
+};
+
 // Export for both Node.js (server) and browser (client)
 if (typeof module !== 'undefined' && module.exports) {
   // Node.js environment
   module.exports = {
     QUIZ_QUESTIONS,
     PHYSICS_LESSONS,
-    GAME_CONFIG
+    GAME_CONFIG,
+    DEFAULT_PLAYER_TITLE,
+    ACHIEVEMENTS
   };
 } else {
   // Browser environment - make available globally
   window.QUIZ_QUESTIONS = QUIZ_QUESTIONS;
   window.PHYSICS_LESSONS = PHYSICS_LESSONS;
   window.GAME_CONFIG = GAME_CONFIG;
+  window.DEFAULT_PLAYER_TITLE = DEFAULT_PLAYER_TITLE;
+  window.ACHIEVEMENTS = ACHIEVEMENTS;
 }

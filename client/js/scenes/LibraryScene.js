@@ -64,7 +64,8 @@ class LibraryScene extends Phaser.Scene {
     
     // Create local player
     const userData = this.game.userData;
-    this.player = new Player(this, 250, 400, userData.username, userData.avatarConfig);
+    const playerTitle = userData.currentTitle || userData.title || (window.DEFAULT_PLAYER_TITLE || 'Rookie');
+    this.player = new Player(this, 250, 400, userData.username, userData.avatarConfig, playerTitle);
     
     // Other players map
     this.otherPlayers = new Map();

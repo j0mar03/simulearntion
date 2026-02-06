@@ -5,6 +5,8 @@ class OtherPlayer {
     this.socketId = playerData.socketId;
     this.userId = playerData.userId;
     this.username = playerData.username;
+    const fallbackTitle = window.DEFAULT_PLAYER_TITLE || 'Rookie';
+    this.title = playerData.title || playerData.currentTitle || fallbackTitle;
     this.avatarConfig = playerData.avatarConfig || { body: 'u1', head: 'none' };
     
     // Get the correct animation key based on avatar configuration
@@ -45,7 +47,7 @@ class OtherPlayer {
     this.loadAnimation();
     
     // Create name label
-    this.nameText = scene.add.text(startX, startY - 60, playerData.username, {
+    this.nameText = scene.add.text(startX, startY - 70, playerData.username, {
       fontSize: '14px',
       fill: '#ffffff',
       backgroundColor: '#000000',
@@ -53,6 +55,16 @@ class OtherPlayer {
     });
     this.nameText.setOrigin(0.5);
     this.nameText.setDepth(1000); // Always on top
+    
+    // Create title label
+    this.titleText = scene.add.text(startX, startY - 52, this.title, {
+      fontSize: '12px',
+      fill: '#ffd700',
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+      padding: { x: 4, y: 1 }
+    });
+    this.titleText.setOrigin(0.5);
+    this.titleText.setDepth(1000);
     
     // Target position for smooth movement - use actual position from server
     this.targetX = startX;
@@ -139,6 +151,7 @@ class OtherPlayer {
       const oldY = this.sprite.y;
       const oldFlip = this.sprite.flipX;
       const oldNameText = this.nameText;
+      const oldTitleText = this.titleText;
       
       // Stop current animation
       if (this.currentAnimation && this.sprite.anims.isPlaying) {
@@ -176,7 +189,7 @@ class OtherPlayer {
       
       // Recreate name label if it was destroyed
       if (!oldNameText || !oldNameText.active) {
-        this.nameText = this.scene.add.text(oldX, oldY - 60, this.username, {
+        this.nameText = this.scene.add.text(oldX, oldY - 70, this.username, {
           fontSize: '14px',
           fill: '#ffffff',
           backgroundColor: '#000000',
@@ -186,6 +199,19 @@ class OtherPlayer {
         this.nameText.setDepth(1000);
       } else {
         this.nameText = oldNameText;
+      }
+      
+      if (!oldTitleText || !oldTitleText.active) {
+        this.titleText = this.scene.add.text(oldX, oldY - 52, this.title, {
+          fontSize: '12px',
+          fill: '#ffd700',
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          padding: { x: 4, y: 1 }
+        });
+        this.titleText.setOrigin(0.5);
+        this.titleText.setDepth(1000);
+      } else {
+        this.titleText = oldTitleText;
       }
       
       // Update to correct texture once available
@@ -348,10 +374,16 @@ class OtherPlayer {
     
     // Update name label position to follow sprite
     if (this.nameText && this.sprite) {
-      this.nameText.setPosition(this.sprite.x, this.sprite.y - 60);
+      this.nameText.setPosition(this.sprite.x, this.sprite.y - 70);
       // Ensure name label is visible
       if (!this.nameText.visible) {
         this.nameText.setVisible(true);
+      }
+    }
+    if (this.titleText && this.sprite) {
+      this.titleText.setPosition(this.sprite.x, this.sprite.y - 52);
+      if (!this.titleText.visible) {
+        this.titleText.setVisible(true);
       }
     }
   }
@@ -377,7 +409,10 @@ class OtherPlayer {
         this.sprite.x = this.targetX;
         this.sprite.y = this.targetY;
         if (this.nameText) {
-          this.nameText.setPosition(this.targetX, this.targetY - 60);
+          this.nameText.setPosition(this.targetX, this.targetY - 70);
+        }
+        if (this.titleText) {
+          this.titleText.setPosition(this.targetX, this.targetY - 52);
         }
         console.log(`Teleported ${this.username} to (${this.targetX}, ${this.targetY}) - was too far`);
       }
@@ -398,11 +433,25 @@ class OtherPlayer {
     this.sprite.setPosition(x, y);
     this.targetX = x;
     this.targetY = y;
-    this.nameText.setPosition(x, y - 60);
+    this.nameText.setPosition(x, y - 70);
+    if (this.titleText) {
+      this.titleText.setPosition(x, y - 52);
+    }
+  }
+  
+  setTitle(title) {
+    if (!title) return;
+    this.title = title;
+    if (this.titleText) {
+      this.titleText.setText(title);
+    }
   }
   
   destroy() {
     this.sprite.destroy();
     this.nameText.destroy();
+    if (this.titleText) {
+      this.titleText.destroy();
+    }
   }
 }
