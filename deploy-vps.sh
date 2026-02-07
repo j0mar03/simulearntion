@@ -159,6 +159,13 @@ if [ -d ".git" ]; then
     git pull origin main || log_warning "Could not pull from Git (might be first deployment)"
 fi
 
+RUN_DB=false
+for arg in "$@"; do
+  if [ "$arg" == "--db" ]; then
+    RUN_DB=true
+  fi
+done
+
 # ============================================================================
 # Step 7: Build and Start Services
 # ============================================================================
@@ -190,14 +197,18 @@ for i in {1..30}; do
 done
 
 # Run migrations/schema sync
-log_info "Step 10: Running database migrations..."
-${COMPOSE_CMD} exec -T app npx prisma migrate deploy || log_warning "Migrations had issues (might be ok)"
+if [ "$RUN_DB" = true ]; then
+  log_info "Step 10: Running database migrations..."
+  ${COMPOSE_CMD} exec -T app npx prisma migrate deploy || log_warning "Migrations had issues (might be ok)"
 
-log_info "Step 11: Syncing Prisma schema (db push)..."
-${COMPOSE_CMD} exec -T app npx prisma db push || log_warning "Prisma db push had issues (might be ok)"
+  log_info "Step 11: Syncing Prisma schema (db push)..."
+  ${COMPOSE_CMD} exec -T app npx prisma db push || log_warning "Prisma db push had issues (might be ok)"
 
-log_info "Step 12: Ensuring admin account exists..."
-${COMPOSE_CMD} exec -T app node scripts/create-admin.js || log_warning "Admin creation script had issues (might be ok)"
+  log_info "Step 12: Ensuring admin account exists..."
+  ${COMPOSE_CMD} exec -T app node scripts/create-admin.js || log_warning "Admin creation script had issues (might be ok)"
+else
+  log_warning "Skipping DB changes (use --db to run migrations/db push/admin setup)"
+fi
 
 # ============================================================================
 # Step 6: Health Check
