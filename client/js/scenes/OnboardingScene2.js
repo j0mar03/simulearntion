@@ -20,9 +20,23 @@ class OnboardingScene2 extends Phaser.Scene {
     principal.setDepth(1);
     
     // Dialog box
-    const dialogBox = this.add.rectangle(width / 2, height - 120, width - 80, 140, 0x000000, 0.7);
-    dialogBox.setStrokeStyle(2, 0xffffff, 0.2);
+    const dialogBox = this.add.graphics();
     dialogBox.setDepth(5);
+    dialogBox.fillStyle(0x000000, 0.7);
+    dialogBox.lineStyle(2, 0xffffff, 0.2);
+    const dialogWidth = width - 80;
+    const dialogHeight = 140;
+    const dialogX = width / 2;
+    const dialogY = height - 120;
+    dialogBox.fillRoundedRect(dialogX - dialogWidth / 2, dialogY - dialogHeight / 2, dialogWidth, dialogHeight, 16);
+    dialogBox.strokeRoundedRect(dialogX - dialogWidth / 2, dialogY - dialogHeight / 2, dialogWidth, dialogHeight, 16);
+    const tailY = dialogY + 20;
+    dialogBox.fillTriangle(dialogX - dialogWidth / 2 + 10, tailY - 20,
+      dialogX - dialogWidth / 2 - 30, tailY,
+      dialogX - dialogWidth / 2 + 10, tailY + 20);
+    dialogBox.strokeTriangle(dialogX - dialogWidth / 2 + 10, tailY - 20,
+      dialogX - dialogWidth / 2 - 30, tailY,
+      dialogX - dialogWidth / 2 + 10, tailY + 20);
     
     const dialogText = [
       "here's the basics:",
@@ -31,15 +45,17 @@ class OnboardingScene2 extends Phaser.Scene {
       '• account and avatar management',
       '',
       "you’ll see quests on your dashboard, progress bars on your profile,",
-      "and mini-games scattered throughout the map. don’t worry —",
+      "and mini-quiz in the library scene! don’t worry —",
       "i’ll pop in whenever you need help."
     ].join('\n');
     
-    this.add.text(210, height - 195, dialogText, {
+    const dialogTextObj = this.add.text(210, height - 195, '', {
       fontSize: '15px',
+      fontFamily: 'monospace',
       fill: '#ffffff',
       wordWrap: { width: width - 260 }
     }).setOrigin(0, 0).setDepth(6);
+    this.typeDialogText(dialogTextObj, dialogText);
     
     // UI highlight boxes
     const highlights = [
@@ -93,6 +109,10 @@ class OnboardingScene2 extends Phaser.Scene {
     const startNext = () => {
       if (this.isTransitioning) return;
       this.isTransitioning = true;
+      if (this.dialogTypeTimer) {
+        this.dialogTypeTimer.remove(false);
+        this.dialogTypeTimer = null;
+      }
       this.cameras.main.fadeOut(500, 0, 0, 0);
       this.time.delayedCall(520, () => {
         this.scene.start('OnboardingScene3');
@@ -108,10 +128,64 @@ class OnboardingScene2 extends Phaser.Scene {
     skipText.setInteractive({ useHandCursor: true });
     skipText.on('pointerdown', () => {
       localStorage.setItem('skipTour', 'true');
+      if (this.dialogTypeTimer) {
+        this.dialogTypeTimer.remove(false);
+        this.dialogTypeTimer = null;
+      }
       this.scene.start('LobbyScene');
     });
     
-    this.input.once('pointerdown', startNext);
-    this.time.delayedCall(7000, startNext);
+    const prevBtn = this.add.rectangle(80, height - 60, 120, 36, 0x667eea);
+    prevBtn.setInteractive({ useHandCursor: true });
+    this.add.text(80, height - 60, 'Previous', {
+      fontSize: '14px',
+      fill: '#ffffff'
+    }).setOrigin(0.5);
+    prevBtn.on('pointerdown', () => {
+      if (this.isTransitioning) return;
+      this.isTransitioning = true;
+      if (this.dialogTypeTimer) {
+        this.dialogTypeTimer.remove(false);
+        this.dialogTypeTimer = null;
+      }
+      this.cameras.main.fadeOut(500, 0, 0, 0);
+      this.time.delayedCall(520, () => {
+        this.scene.start('OnboardingScene1');
+      });
+    });
+
+    const nextBtn = this.add.rectangle(width - 80, height - 60, 120, 36, 0x667eea);
+    nextBtn.setInteractive({ useHandCursor: true });
+    this.add.text(width - 80, height - 60, 'Next', {
+      fontSize: '14px',
+      fill: '#ffffff'
+    }).setOrigin(0.5);
+    nextBtn.on('pointerdown', startNext);
+  }
+
+  typeDialogText(target, text) {
+    if (!target) return;
+    if (this.dialogTypeTimer) {
+      this.dialogTypeTimer.remove(false);
+      this.dialogTypeTimer = null;
+    }
+    const fullText = String(text || '');
+    let index = 0;
+    target.setText('');
+    this.dialogTypeTimer = this.time.addEvent({
+      delay: 45,
+      loop: true,
+      callback: () => {
+        if (index >= fullText.length) {
+          if (this.dialogTypeTimer) {
+            this.dialogTypeTimer.remove(false);
+            this.dialogTypeTimer = null;
+          }
+          return;
+        }
+        target.setText(fullText.slice(0, index + 1));
+        index += 1;
+      }
+    });
   }
 }

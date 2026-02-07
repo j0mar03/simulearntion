@@ -61,11 +61,33 @@ class LibraryScene extends Phaser.Scene {
       backgroundColor: '#ffffff',
       padding: { x: 10, y: 5 }
     }).setOrigin(0.5);
+
+    // Ms. Parro NPC (lecturer)
+    this.parro = this.add.image(150, 220, 'paru-avatar').setScale(0.12);
+    this.parro.setDepth(9);
+    this.add.text(150, 160, 'Ms. Parro', {
+      fontSize: '14px',
+      fill: '#ffffff',
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      padding: { x: 6, y: 2 }
+    }).setOrigin(0.5).setDepth(10);
+    this.parro.setInteractive({ useHandCursor: true });
+    this.parro.on('pointerdown', () => this.openParroDialog());
+    this.parroDialogCooldown = 0;
+    this.createParroDialog();
+    // Enable physics so the player collides with Paru
+    this.physics.add.existing(this.parro, true);
+    const parroBodyW = this.parro.width * this.parro.scaleX * 0.6;
+    const parroBodyH = this.parro.height * this.parro.scaleY * 0.6;
+    this.parro.body.setSize(parroBodyW, parroBodyH, true);
     
     // Create local player
     const userData = this.game.userData;
     const playerTitle = userData.currentTitle || userData.title || (window.DEFAULT_PLAYER_TITLE || 'Rookie');
     this.player = new Player(this, 250, 400, userData.username, userData.avatarConfig, playerTitle);
+    if (this.player && this.player.sprite && this.parro && this.parro.body) {
+      this.physics.add.collider(this.player.sprite, this.parro);
+    }
     
     // Other players map
     this.otherPlayers = new Map();
@@ -112,6 +134,22 @@ class LibraryScene extends Phaser.Scene {
         }
       } else {
         this.doorCooldown -= delta;
+      }
+
+      // Ms. Parro proximity check
+      if (this.parroDialogCooldown > 0) {
+        this.parroDialogCooldown -= delta;
+      }
+      const dist = Phaser.Math.Distance.Between(
+        this.player.sprite.x,
+        this.player.sprite.y,
+        this.parro.x,
+        this.parro.y
+      );
+      if (this.parroDialogVisible && dist > 110) {
+        this.closeParroDialog();
+      } else if (!this.parroDialogVisible && this.parroDialogCooldown <= 0 && dist <= 80) {
+        this.openParroDialog();
       }
     }
     
@@ -311,6 +349,103 @@ class LibraryScene extends Phaser.Scene {
   onPlayerStudying(data) {
     console.log(`${data.username} is studying ${data.topic}`);
     // Could show notification or update UI
+  }
+
+  createParroDialog() {
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+    const dialogWidth = width - 80;
+    const dialogHeight = 200;
+
+    this.parroDialog = this.add.container(width / 2, height - 140);
+    this.parroDialog.setDepth(20);
+
+    const dialogBg = this.add.graphics();
+    dialogBg.fillStyle(0x000000, 0.75);
+    dialogBg.lineStyle(2, 0xffffff, 0.2);
+    dialogBg.fillRoundedRect(-dialogWidth / 2, -dialogHeight / 2, dialogWidth, dialogHeight, 16);
+    dialogBg.strokeRoundedRect(-dialogWidth / 2, -dialogHeight / 2, dialogWidth, dialogHeight, 16);
+    const tailX = Phaser.Math.Clamp(this.parro.x - (width / 2), -dialogWidth / 2 + 60, dialogWidth / 2 - 60);
+    dialogBg.fillTriangle(tailX - 40, -dialogHeight / 2 + 10, tailX, -dialogHeight / 2 - 22, tailX + 40, -dialogHeight / 2 + 10);
+    dialogBg.strokeTriangle(tailX - 40, -dialogHeight / 2 + 10, tailX, -dialogHeight / 2 - 22, tailX + 40, -dialogHeight / 2 + 10);
+
+    this.parroDialogTitle = this.add.text(0, -60, 'Parro', {
+      fontSize: '18px',
+      fill: '#ffffff',
+      fontStyle: 'bold'
+    }).setOrigin(0.5);
+
+    this.parroDialogBody = this.add.text(0, 0,
+      'Welcome to the Library, SimuLearner!\nHere, you can access the learning materials that are essential for your study!',
+      {
+        fontSize: '16px',
+        fontFamily: 'monospace',
+        fill: '#ffffff',
+        align: 'center',
+        wordWrap: { width: dialogWidth - 120 }
+      }
+    ).setOrigin(0.5);
+
+    const closeBtn = this.add.rectangle(0, 60, 120, 34, 0x667eea);
+    closeBtn.setInteractive({ useHandCursor: true });
+    const closeText = this.add.text(0, 60, 'Close', {
+      fontSize: '14px',
+      fill: '#ffffff'
+    }).setOrigin(0.5);
+
+    closeBtn.on('pointerdown', () => this.closeParroDialog());
+
+    this.parroDialog.add([dialogBg, this.parroDialogTitle, this.parroDialogBody, closeBtn, closeText]);
+    this.parroDialog.setVisible(false);
+    this.parroDialogVisible = false;
+  }
+
+  openParroDialog() {
+    if (!this.parroDialog || this.parroDialogVisible) return;
+    this.parroDialogVisible = true;
+    this.parroDialog.setVisible(true);
+    this.setParroBodyText(
+      'Welcome to the Library, SimuLearner!\nHere, you can access the learning materials that are essential for your study!'
+    );
+  }
+
+  closeParroDialog() {
+    if (!this.parroDialog) return;
+    this.parroDialogVisible = false;
+    this.parroDialog.setVisible(false);
+    this.parroDialogCooldown = 700;
+    if (this.parroTextTimer) {
+      this.parroTextTimer.remove(false);
+      this.parroTextTimer = null;
+    }
+  }
+
+  setParroBodyText(text) {
+    if (!this.parroDialogBody) return;
+    if (this.parroTextTimer) {
+      this.parroTextTimer.remove(false);
+      this.parroTextTimer = null;
+    }
+
+    const fullText = String(text || '');
+    let index = 0;
+    this.parroDialogBody.setText('');
+
+    this.parroTextTimer = this.time.addEvent({
+      delay: 45,
+      loop: true,
+      callback: () => {
+        if (index >= fullText.length) {
+          if (this.parroTextTimer) {
+            this.parroTextTimer.remove(false);
+            this.parroTextTimer = null;
+          }
+          return;
+        }
+        this.parroDialogBody.setText(fullText.slice(0, index + 1));
+        index += 1;
+      }
+    });
   }
   
   shutdown() {

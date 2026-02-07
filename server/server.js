@@ -13,6 +13,7 @@ const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
 const analyticsRoutes = require('./routes/analytics');
 const leaderboardRoutes = require('./routes/leaderboard');
+const quizRoutes = require('./routes/quiz');
 
 // Import socket handler
 const initializeSocketHandler = require('./socket-handler');
@@ -69,6 +70,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/quiz', quizRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

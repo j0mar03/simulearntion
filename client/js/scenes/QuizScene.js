@@ -36,18 +36,21 @@ class QuizScene extends Phaser.Scene {
     });
     
     // Quiz state
-    this.questions = QUIZ_QUESTIONS;
+    this.allQuestions = QUIZ_QUESTIONS;
+    this.questions = [];
     this.currentQuestionIndex = 0;
     this.score = 0;
     this.selectedAnswer = 0;
     this.showingFeedback = false;
     this.feedbackTimer = 0;
+    this.selectedTopic = null;
+    this.quizAttempts = [];
     
     // Create quiz UI
     this.createQuizUI();
     
-    // Display first question
-    this.displayQuestion();
+    // Show topic selection first
+    this.showTopicSelect();
     
     // Keyboard input
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -79,10 +82,10 @@ class QuizScene extends Phaser.Scene {
     this.answerTexts = [];
     
     const buttonPositions = [
-      { x: 200, y: 250 },
-      { x: 600, y: 250 },
-      { x: 200, y: 350 },
-      { x: 600, y: 350 }
+      { x: 200, y: 386 },
+      { x: 600, y: 386 },
+      { x: 200, y: 534 },
+      { x: 600, y: 534 }
     ];
     
     buttonPositions.forEach((pos, index) => {
@@ -92,6 +95,7 @@ class QuizScene extends Phaser.Scene {
       btn.on('pointerdown', () => {
         if (!this.showingFeedback) {
           this.selectAnswer(index);
+          this.submitAnswer();
         }
       });
       
@@ -115,19 +119,77 @@ class QuizScene extends Phaser.Scene {
     this.feedbackText.setVisible(false);
     
     // Instructions
-    this.instructionsText = this.add.text(width / 2, 520, 
-      'Arrow Keys: Select | ENTER: Submit Answer', {
-      fontSize: '14px',
+    this.instructionsText = this.add.text(width / 2, height - 12, 
+      'Arrow Keys: Select | ENTER: Submit | Tap an answer to submit', {
+      fontSize: '13px',
       fill: '#000000',
       backgroundColor: '#ffffff',
-      padding: { x: 10, y: 5 }
+      padding: { x: 8, y: 4 }
     }).setOrigin(0.5);
     
     // Completion UI (hidden initially)
     this.completionUI = null;
+    this.topicUI = null;
+  }
+
+  showTopicSelect() {
+    if (this.topicUI) return;
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+    const topics = Array.from(new Set(this.allQuestions.map(q => q.topic))).sort();
+
+    this.infoText.setVisible(false);
+    this.questionText.setVisible(false);
+    this.answerButtons.forEach(btn => btn.setVisible(false));
+    this.answerTexts.forEach(text => text.setVisible(false));
+
+    this.topicUI = this.add.container(width / 2, height / 2);
+    const bg = this.add.rectangle(0, 0, 420, 320, 0x000000, 0.75);
+    bg.setStrokeStyle(2, 0xffffff, 0.2);
+    const title = this.add.text(0, -130, 'Select a Topic', {
+      fontSize: '22px',
+      fill: '#ffffff'
+    }).setOrigin(0.5);
+
+    this.topicUI.add([bg, title]);
+
+    topics.forEach((topic, index) => {
+      const y = -70 + index * 45;
+      const btn = this.add.rectangle(0, y, 300, 36, 0x667eea);
+      btn.setInteractive({ useHandCursor: true });
+      const text = this.add.text(0, y, topic, {
+        fontSize: '16px',
+        fill: '#ffffff'
+      }).setOrigin(0.5);
+      btn.on('pointerdown', () => {
+        this.selectedTopic = topic;
+        this.questions = this.allQuestions.filter(q => q.topic === topic);
+        this.currentQuestionIndex = 0;
+        this.score = 0;
+        this.quizAttempts = [];
+        this.hideTopicSelect();
+        this.displayQuestion();
+      });
+      this.topicUI.add([btn, text]);
+    });
+  }
+
+  hideTopicSelect() {
+    if (this.topicUI) {
+      this.topicUI.destroy();
+      this.topicUI = null;
+    }
+
+    this.infoText.setVisible(true);
+    this.questionText.setVisible(true);
+    this.answerButtons.forEach(btn => btn.setVisible(true));
+    this.answerTexts.forEach(text => text.setVisible(true));
   }
   
   displayQuestion() {
+    if (!this.questions || this.questions.length === 0) {
+      return;
+    }
     if (this.currentQuestionIndex >= this.questions.length) {
       this.showCompletion();
       return;
@@ -146,14 +208,14 @@ class QuizScene extends Phaser.Scene {
       this.answerTexts[index].setText(option);
     });
     
-    // Reset button styles
-    this.updateButtonStyles();
-    
-    // Reset selection
+    // Reset selection/feedback before styling
     this.selectedAnswer = 0;
     this.showingFeedback = false;
     this.feedbackText.setVisible(false);
     this.instructionsText.setVisible(true);
+    
+    // Reset button styles
+    this.updateButtonStyles();
   }
   
   updateButtonStyles() {
@@ -197,6 +259,14 @@ class QuizScene extends Phaser.Scene {
     const question = this.questions[this.currentQuestionIndex];
     const isCorrect = this.selectedAnswer === question.correct;
     
+    this.quizAttempts.push({
+      question: question.q,
+      selectedAnswer: question.options[this.selectedAnswer],
+      correctAnswer: question.options[question.correct],
+      isCorrect,
+      topic: question.topic
+    });
+    
     if (isCorrect) {
       this.score++;
       this.feedbackText.setText('CORRECT!');
@@ -222,6 +292,9 @@ class QuizScene extends Phaser.Scene {
   }
   
   update(time, delta) {
+    if (this.topicUI) {
+      return;
+    }
     // Keyboard navigation
     const now = time;
     
@@ -323,6 +396,7 @@ class QuizScene extends Phaser.Scene {
     this.currentQuestionIndex = 0;
     this.score = 0;
     this.selectedAnswer = 0;
+    this.selectedTopic = null;
     
     if (this.completionUI) {
       this.completionUI.destroy();
@@ -335,8 +409,7 @@ class QuizScene extends Phaser.Scene {
     this.answerButtons.forEach(btn => btn.setVisible(true));
     this.answerTexts.forEach(text => text.setVisible(true));
     this.instructionsText.setVisible(true);
-    
-    this.displayQuestion();
+    this.showTopicSelect();
   }
   
   async saveQuizResults() {
@@ -346,6 +419,95 @@ class QuizScene extends Phaser.Scene {
     // This would typically save full session data
     // For now, just log completion
     console.log('Quiz completed:', this.score, '/', this.questions.length);
+
+    // Update local per-topic stats for profile display
+    if (this.selectedTopic) {
+      const userData = this.game && this.game.userData ? this.game.userData : (JSON.parse(localStorage.getItem('user') || '{}'));
+      userData.quizTopicStats = userData.quizTopicStats || {};
+      const existing = userData.quizTopicStats[this.selectedTopic] || {};
+      const best = Math.max(existing.best || 0, this.score);
+      userData.quizTopicStats[this.selectedTopic] = {
+        latest: this.score,
+        best,
+        total: this.questions.length
+      };
+      if (this.game && this.game.userData) {
+        this.game.userData = userData;
+      }
+      localStorage.setItem('user', JSON.stringify(userData));
+    }
+
+    // Sync quiz results to server and refresh achievements/profile
+    if (token && this.selectedTopic && this.quizAttempts.length > 0) {
+      try {
+        const response = await fetch('/api/quiz/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            topic: this.selectedTopic,
+            attempts: this.quizAttempts
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const achievements = Array.isArray(data.achievements) ? data.achievements : [];
+          const awarded = Array.isArray(data.awarded) ? data.awarded : [];
+
+          const userData = this.game && this.game.userData ? this.game.userData : (JSON.parse(localStorage.getItem('user') || '{}'));
+          userData.achievements = achievements;
+          if (this.game && this.game.userData) {
+            this.game.userData = userData;
+          }
+          localStorage.setItem('user', JSON.stringify(userData));
+
+          if (window.socketManager && awarded.length > 0) {
+            awarded.forEach((a) => {
+              const name = a.name || (window.ACHIEVEMENTS && window.ACHIEVEMENTS[a.id] ? window.ACHIEVEMENTS[a.id].name : a.id);
+              window.socketManager.earnAchievement(a.id, name);
+            });
+          }
+
+          // Refresh Achievements scene if it's open
+          const scenes = window.game && window.game.scene ? window.game.scene.getScenes(true) : [];
+          scenes.forEach((scene) => {
+            if (scene.scene && scene.scene.key === 'AchieveScene' && scene.refreshAchievements) {
+              scene.refreshAchievements();
+            }
+          });
+        }
+      } catch (error) {
+        console.warn('Failed to sync quiz results:', error);
+      }
+    }
+
+    // Refresh profile data for unlocks/titles
+    if (token) {
+      try {
+        const profileRes = await fetch('/api/profile', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          const userData = this.game && this.game.userData ? this.game.userData : (JSON.parse(localStorage.getItem('user') || '{}'));
+          userData.unlockedItems = profileData.unlockedItems || userData.unlockedItems || {};
+          userData.isAdmin = profileData.isAdmin || false;
+          if (profileData.avatarConfig) userData.avatarConfig = profileData.avatarConfig;
+          if (profileData.username) userData.username = profileData.username;
+          if (profileData.currentTitle) userData.currentTitle = profileData.currentTitle;
+          userData.achievements = (profileData.achievements || []).map(a => a.achievementId);
+          if (this.game && this.game.userData) {
+            this.game.userData = userData;
+          }
+          localStorage.setItem('user', JSON.stringify(userData));
+        }
+      } catch (error) {
+        console.warn('Failed to refresh profile after quiz:', error);
+      }
+    }
   }
   
   saveAndExit() {

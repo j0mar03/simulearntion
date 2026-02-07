@@ -53,6 +53,15 @@ const config = {
 };
 
 let game;
+let touchControlsInitialized = false;
+
+function ensureTouchControls() {
+  if (touchControlsInitialized) return;
+  if (typeof TouchControls !== 'undefined') {
+    window.touchControls = new TouchControls();
+    touchControlsInitialized = true;
+  }
+}
 
 // Initialize game after successful authentication
 async function initializeGame() {
@@ -147,6 +156,7 @@ async function initializeGame() {
     if (!game) {
       console.log('Creating Phaser game...');
       game = new Phaser.Game(config);
+      ensureTouchControls();
       
       // Store user data globally for access in scenes
       let userData = JSON.parse(localStorage.getItem('user') || '{}');
@@ -180,6 +190,7 @@ async function initializeGame() {
       
       console.log('Phaser game created, userData:', userData);
     } else {
+      ensureTouchControls();
       // Update existing game's userData if needed
       if (!game.userData) {
         let userData = JSON.parse(localStorage.getItem('user') || '{}');

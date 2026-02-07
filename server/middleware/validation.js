@@ -55,6 +55,17 @@ const schemas = {
     quizAttempts: Joi.array().items(Joi.object()).required(),
     stateTransitions: Joi.array().items(Joi.object()).required(),
     topicsStudied: Joi.array().items(Joi.string()).required()
+  }),
+  
+  quizSubmit: Joi.object({
+    topic: Joi.string().required(),
+    attempts: Joi.array().items(Joi.object({
+      question: Joi.string().required(),
+      selectedAnswer: Joi.string().required(),
+      correctAnswer: Joi.string().required(),
+      isCorrect: Joi.boolean().required(),
+      topic: Joi.string().required()
+    })).min(1).required()
   })
 };
 

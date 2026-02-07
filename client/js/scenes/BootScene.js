@@ -65,6 +65,8 @@ class BootScene extends Phaser.Scene {
     // --- CHARACTER PORTRAITS ---
     this.load.image('principal-avatar', '/assets/npc icons/principal_racco_default.png');
     this.load.image('sumi-avatar', '/assets/npc icons/councilor_sumi_default.png');
+    this.load.image('chiggy-avatar', '/assets/npc icons/chiggy.png');
+    this.load.image('paru-avatar', '/assets/npc icons/paru.png');
     
     // --- UI BUTTONS ---
     this.load.image('back-btn', '/assets/images/back button.png');

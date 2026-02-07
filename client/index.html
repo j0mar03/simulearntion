@@ -81,6 +81,16 @@
         <div id="players-list-content"></div>
     </div>
 
+    <!-- Touch Controls (mobile) -->
+    <div id="touch-controls" class="touch-controls" aria-hidden="true">
+        <div class="touch-dpad">
+            <button class="touch-btn touch-up" data-dir="up" aria-label="Move up">▲</button>
+            <button class="touch-btn touch-left" data-dir="left" aria-label="Move left">◀</button>
+            <button class="touch-btn touch-right" data-dir="right" aria-label="Move right">▶</button>
+            <button class="touch-btn touch-down" data-dir="down" aria-label="Move down">▼</button>
+        </div>
+    </div>
+
     <!-- Profile Button -->
     <button id="profile-open" style="display:none;">Profile</button>
 
@@ -120,6 +130,7 @@
     <script src="/js/utils/GIFAnimator.js"></script>
     <script src="/js/utils/GIFPlayer.js"></script>
     <script src="/js/network/SocketManager.js"></script>
+    <script src="/js/ui/TouchControls.js"></script>
     <script src="/js/entities/Player.js"></script>
     <script src="/js/entities/OtherPlayer.js"></script>
     <script src="/js/ui/ChatBox.js"></script>

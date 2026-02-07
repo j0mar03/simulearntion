@@ -65,7 +65,12 @@ class AchieveScene extends Phaser.Scene {
   
   displayAchievements() {
     const width = this.cameras.main.width;
-    
+    if (!this.achievementsContainer) {
+      this.achievementsContainer = this.add.container(0, 0);
+    } else {
+      this.achievementsContainer.removeAll(true);
+    }
+
     const allAchievements = window.ACHIEVEMENTS || {};
     
     // Summary
@@ -73,10 +78,11 @@ class AchieveScene extends Phaser.Scene {
     const earnedCount = this.isAdmin ? Object.keys(allAchievements).length : this.earnedAchievements.length;
     const totalCount = Object.keys(allAchievements).length;
     
-    this.add.text(width / 2, 80, `Earned: ${earnedCount}/${totalCount}${this.isAdmin ? ' (Admin)' : ''}`, {
+    const summaryText = this.add.text(width / 2, 80, `Earned: ${earnedCount}/${totalCount}${this.isAdmin ? ' (Admin)' : ''}`, {
       fontSize: '20px',
       fill: '#00aa00'
     }).setOrigin(0.5);
+    this.achievementsContainer.add(summaryText);
     
     // Display achievements in grid
     let yOffset = 130;
@@ -109,6 +115,8 @@ class AchieveScene extends Phaser.Scene {
         fontSize: '12px',
         fill: earned ? '#333333' : '#888888'
       });
+
+      this.achievementsContainer.add([box, icon, name, desc]);
       
       // Move to next position
       column++;
@@ -120,5 +128,12 @@ class AchieveScene extends Phaser.Scene {
         xOffset = 400;
       }
     });
+  }
+
+  async refreshAchievements() {
+    const userData = this.game.userData || JSON.parse(localStorage.getItem('user') || '{}');
+    this.isAdmin = userData.isAdmin || false;
+    await this.loadAchievements();
+    this.displayAchievements();
   }
 }

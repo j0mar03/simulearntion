@@ -19,6 +19,16 @@ class LobbyScene extends Phaser.Scene {
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
       padding: { x: 10, y: 5 }
     }).setOrigin(0.5).setDepth(10);
+
+    // Profile button (top-left)
+    const profileBtn = this.add.rectangle(70, 40, 110, 34, 0x2c3e50);
+    profileBtn.setInteractive({ useHandCursor: true });
+    this.add.text(70, 40, 'Profile', {
+      fontSize: '14px',
+      fill: '#ffffff'
+    }).setOrigin(0.5).setDepth(11);
+    profileBtn.setDepth(10);
+    profileBtn.on('pointerdown', () => this.toggleProfilePanel());
     
     // Library door (top right) - using real position from original game
     const libraryDoorHitbox = this.add.rectangle(700, 100, 100, 100, 0x8B4513, 0);
@@ -98,6 +108,26 @@ class LobbyScene extends Phaser.Scene {
     } catch (error) {
       console.error('Error creating achievements button:', error);
     }
+
+    // Tutorial button (replay onboarding)
+    try {
+      const tutorialBtn = this.add.rectangle(50, 300, 180, 40, 0x4a90e2);
+      this.add.text(50, 300, '📘 Tutorial', {
+        fontSize: '14px',
+        fill: '#ffffff'
+      }).setOrigin(0.5).setDepth(11);
+      tutorialBtn.setInteractive({ useHandCursor: true });
+      tutorialBtn.on('pointerdown', () => {
+        try {
+          this.scene.start('OnboardingScene1');
+        } catch (error) {
+          console.error('Error starting OnboardingScene1:', error);
+        }
+      });
+      tutorialBtn.setDepth(10);
+    } catch (error) {
+      console.error('Error creating tutorial button:', error);
+    }
     
     // Logout button
     const logoutBtn = this.add.rectangle(50, 350, 180, 40, 0xff4444);
@@ -120,6 +150,25 @@ class LobbyScene extends Phaser.Scene {
       }
     });
     logoutBtn.setDepth(10);
+
+    // Chef Chiggy NPC (lecturer)
+    this.chiggy = this.add.image(width * 0.7 - 96, 140, 'chiggy-avatar').setScale(0.12);
+    this.chiggy.setDepth(9);
+    this.add.text(width * 0.7 - 96, 95, 'Chef Chiggy', {
+      fontSize: '14px',
+      fill: '#ffffff',
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      padding: { x: 6, y: 2 }
+    }).setOrigin(0.5).setDepth(10);
+    this.chiggy.setInteractive({ useHandCursor: true });
+    this.chiggy.on('pointerdown', () => this.openChiggyDialog());
+    this.chiggyDialogCooldown = 0;
+    this.createChiggyDialog();
+    // Enable physics so the player collides with Chiggy
+    this.physics.add.existing(this.chiggy, true);
+    const chiggyBodyW = this.chiggy.width * this.chiggy.scaleX * 0.6;
+    const chiggyBodyH = this.chiggy.height * this.chiggy.scaleY * 0.6;
+    this.chiggy.body.setSize(chiggyBodyW, chiggyBodyH, true);
     
     // Instructions
     this.add.text(width / 2, height - 30, 'Arrow Keys: Move | Walk to Library Door (top-right) | Press T to chat', {
@@ -128,6 +177,9 @@ class LobbyScene extends Phaser.Scene {
       backgroundColor: '#000000',
       padding: { x: 10, y: 5 }
     }).setOrigin(0.5);
+
+    // Profile panel (hidden by default)
+    this.createProfilePanel();
     
     // Create local player with proper error handling
     try {
@@ -206,6 +258,11 @@ class LobbyScene extends Phaser.Scene {
         this.player = null;
       }
     }
+
+    // Collide player with Chiggy NPC
+    if (this.player && this.player.sprite && this.chiggy && this.chiggy.body) {
+      this.physics.add.collider(this.player.sprite, this.chiggy);
+    }
     
     // Other players map
     this.otherPlayers = new Map();
@@ -260,6 +317,22 @@ class LobbyScene extends Phaser.Scene {
         } else {
           this.doorCooldown -= delta;
         }
+
+        // Chef Chiggy proximity check
+        if (this.chiggyDialogCooldown > 0) {
+          this.chiggyDialogCooldown -= delta;
+        }
+        const dist = Phaser.Math.Distance.Between(
+          this.player.sprite.x,
+          this.player.sprite.y,
+          this.chiggy.x,
+          this.chiggy.y
+        );
+        if (this.chiggyDialogVisible && dist > 110) {
+          this.closeChiggyDialog();
+        } else if (!this.chiggyDialogVisible && this.chiggyDialogCooldown <= 0 && dist <= 80) {
+          this.openChiggyDialog();
+        }
       }
       
       // Update other players
@@ -274,6 +347,156 @@ class LobbyScene extends Phaser.Scene {
       });
     } catch (error) {
       console.error('Error in LobbyScene update:', error);
+    }
+  }
+
+  createProfilePanel() {
+    const panelX = 170;
+    const panelY = 150;
+    this.profilePanel = this.add.container(panelX, panelY);
+    this.profilePanel.setDepth(20);
+
+    const panelBg = this.add.image(0, 0, 'profile-ui');
+    panelBg.setScale(0.35);
+
+    this.profileNameText = this.add.text(0, -106, 'Player', {
+      fontSize: '14px',
+      fill: '#1f2d3d'
+    }).setOrigin(0.5);
+
+    this.profileProgressText = this.add.text(0, -36, '', {
+      fontSize: '13px',
+      fill: '#1f2d3d'
+    }).setOrigin(0.5);
+
+    this.profileTopicHeaderText = this.add.text(0, 12, 'Topics: 0/0', {
+      fontSize: '12px',
+      fill: '#1f2d3d'
+    }).setOrigin(0.5);
+
+    const barWidth = 200;
+    this.profileTopicBarBg = this.add.rectangle(0, 26, barWidth, 8, 0xcccccc);
+    this.profileTopicBarBg.setOrigin(0.5);
+    this.profileTopicBarFill = this.add.rectangle(-barWidth / 2, 26, 0, 8, 0x667eea);
+    this.profileTopicBarFill.setOrigin(0, 0.5);
+
+    this.profileTopicText = this.add.text(0, 46, 'Topics: 0/0', {
+      fontSize: '12px',
+      fill: '#1f2d3d',
+      align: 'center',
+      wordWrap: { width: 260 }
+    }).setOrigin(0.5);
+
+    const closeBtn = this.add.rectangle(-120, 138, 24, 24, 0xff4444);
+    closeBtn.setInteractive({ useHandCursor: true });
+    const closeText = this.add.text(-120, 138, 'X', {
+      fontSize: '12px',
+      fill: '#ffffff'
+    }).setOrigin(0.5);
+    closeBtn.on('pointerdown', () => {
+      this.profilePanel.setVisible(false);
+    });
+
+    this.profilePanel.add([
+      panelBg,
+      this.profileNameText,
+      this.profileProgressText,
+      this.profileTopicHeaderText,
+      this.profileTopicBarBg,
+      this.profileTopicBarFill,
+      this.profileTopicText,
+      closeBtn,
+      closeText
+    ]);
+    this.profilePanel.setVisible(false);
+  }
+
+  async updateProfilePanel() {
+    if (!this.profilePanel) return;
+    const userData = this.game && this.game.userData ? this.game.userData : (JSON.parse(localStorage.getItem('user') || '{}'));
+    const username = userData.username || 'Player';
+    let latestScore = null;
+    let latestTotal = null;
+    let bestScore = null;
+    let bestTotal = null;
+
+    if (this.profileNameText) {
+      this.profileNameText.setText(username);
+    }
+    if (this.profileProgressText) {
+      this.profileProgressText.setText('');
+    }
+
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const response = await fetch('/api/profile/quiz-history', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const history = Array.isArray(data.history) ? data.history : [];
+          history.forEach((session) => {
+            const attempts = Array.isArray(session.quizAttempts) ? session.quizAttempts : [];
+            if (attempts.length === 0) return;
+            const correct = attempts.filter(a => a.isCorrect).length;
+            const total = attempts.length;
+            if (latestScore === null) {
+              latestScore = correct;
+              latestTotal = total;
+            }
+            if (bestScore === null || correct > bestScore) {
+              bestScore = correct;
+              bestTotal = total;
+            }
+          });
+        }
+      } catch (error) {
+        console.warn('Failed to fetch quiz history:', error);
+      }
+    }
+
+    if (this.profileProgressText) {
+      this.profileProgressText.setText('');
+    }
+
+    // Topic progress (local stats)
+    const topicStats = userData.quizTopicStats || {};
+    const topics = (window.QUIZ_QUESTIONS || []).map(q => q.topic);
+    const uniqueTopics = Array.from(new Set(topics));
+    const totalTopics = uniqueTopics.length;
+    let completedTopics = 0;
+    const lines = [];
+    uniqueTopics.forEach((topic) => {
+      const stat = topicStats[topic];
+      if (stat && stat.best >= (stat.total || 5)) {
+        completedTopics += 1;
+      }
+      if (stat) {
+        lines.push(`${topic}: L ${stat.latest}/${stat.total} | B ${stat.best}/${stat.total}`);
+      } else {
+        lines.push(`${topic}: L --/-- | B --/--`);
+      }
+    });
+
+    if (this.profileTopicHeaderText) {
+      this.profileTopicHeaderText.setText(`Topics: ${completedTopics}/${totalTopics}`);
+    }
+    if (this.profileTopicBarFill) {
+      const ratio = totalTopics > 0 ? completedTopics / totalTopics : 0;
+      this.profileTopicBarFill.setDisplaySize(200 * ratio, 8);
+    }
+    if (this.profileTopicText) {
+      this.profileTopicText.setText(lines.join('\n'));
+    }
+  }
+
+  toggleProfilePanel() {
+    if (!this.profilePanel) return;
+    const nextVisible = !this.profilePanel.visible;
+    this.profilePanel.setVisible(nextVisible);
+    if (nextVisible) {
+      this.updateProfilePanel();
     }
   }
   
@@ -430,6 +653,223 @@ class LobbyScene extends Phaser.Scene {
         }
       }
     }
+  }
+
+  createChiggyDialog() {
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+    const dialogWidth = width - 80;
+    const dialogHeight = 260;
+
+    this.chiggyDialog = this.add.container(width / 2, height * 0.55);
+    this.chiggyDialog.setDepth(20);
+
+    const dialogBg = this.add.graphics();
+    dialogBg.fillStyle(0x000000, 0.75);
+    dialogBg.lineStyle(2, 0xffffff, 0.2);
+    dialogBg.fillRoundedRect(-dialogWidth / 2, -dialogHeight / 2, dialogWidth, dialogHeight, 16);
+    dialogBg.strokeRoundedRect(-dialogWidth / 2, -dialogHeight / 2, dialogWidth, dialogHeight, 16);
+    const tailX = Phaser.Math.Clamp(this.chiggy.x - (width / 2), -dialogWidth / 2 + 60, dialogWidth / 2 - 60);
+    dialogBg.fillTriangle(tailX - 40, -dialogHeight / 2 + 10, tailX, -dialogHeight / 2 - 22, tailX + 40, -dialogHeight / 2 + 10);
+    dialogBg.strokeTriangle(tailX - 40, -dialogHeight / 2 + 10, tailX, -dialogHeight / 2 - 22, tailX + 40, -dialogHeight / 2 + 10);
+
+    this.chiggyDialogTitle = this.add.text(0, -100, 'Chef Chiggy', {
+      fontSize: '18px',
+      fill: '#ffffff',
+      fontStyle: 'bold'
+    }).setOrigin(0.5);
+
+    this.chiggyDialogBody = this.add.text(0, -30, '', {
+      fontSize: '16px',
+      fontFamily: 'monospace',
+      fill: '#ffffff',
+      align: 'center',
+      wordWrap: { width: dialogWidth - 120 }
+    }).setOrigin(0.5);
+
+    this.chiggyButtons = [];
+    for (let i = 0; i < 6; i++) {
+      const btn = this.add.rectangle(0, 0, 180, 34, 0x667eea);
+      btn.setInteractive({ useHandCursor: true });
+      const txt = this.add.text(0, 0, '', {
+        fontSize: '14px',
+        fill: '#ffffff'
+      }).setOrigin(0.5);
+      this.chiggyButtons.push({ btn, txt });
+    }
+
+    this.chiggyDialog.add([
+      dialogBg,
+      this.chiggyDialogTitle,
+      this.chiggyDialogBody,
+      ...this.chiggyButtons.flatMap(b => [b.btn, b.txt])
+    ]);
+
+    this.chiggyDialog.setVisible(false);
+    this.chiggyDialogVisible = false;
+  }
+
+  openChiggyDialog() {
+    if (!this.chiggyDialog || this.chiggyDialogVisible) return;
+    this.chiggyDialogVisible = true;
+    this.chiggyDialog.setVisible(true);
+    this.showChiggyOptions();
+  }
+
+  closeChiggyDialog() {
+    if (!this.chiggyDialog) return;
+    this.chiggyDialogVisible = false;
+    this.chiggyDialog.setVisible(false);
+    this.chiggyDialogCooldown = 700;
+    if (this.chiggyTextTimer) {
+      this.chiggyTextTimer.remove(false);
+      this.chiggyTextTimer = null;
+    }
+  }
+
+  setChiggyButtons(defs) {
+    const startY = 50;
+    const stepY = 36;
+    this.chiggyButtons.forEach((entry, index) => {
+      if (defs[index]) {
+        const def = defs[index];
+        entry.btn.setVisible(true);
+        entry.txt.setVisible(true);
+        const y = startY + (index * stepY);
+        entry.btn.setPosition(0, y);
+        entry.txt.setPosition(0, y);
+        entry.txt.setText(def.label);
+        entry.btn.off('pointerdown');
+        entry.btn.on('pointerdown', def.onClick);
+      } else {
+        entry.btn.setVisible(false);
+        entry.txt.setVisible(false);
+        entry.btn.off('pointerdown');
+      }
+    });
+  }
+
+  showChiggyOptions() {
+    this.chiggyDialogTitle.setText('Chef Chiggy');
+    this.setChiggyBodyText(
+      'Welcome to the Lobby, SimuLearner!\nHow may Chiggy help you?'
+    );
+    this.setChiggyButtons([
+      { label: 'Fun Fact', onClick: () => this.showChiggyFunFactTopics() },
+      { label: 'Just Curious', onClick: () => this.showChiggyJustCurious() },
+      { label: 'Close', onClick: () => this.closeChiggyDialog() }
+    ]);
+  }
+
+  showChiggyJustCurious() {
+    this.chiggyDialogTitle.setText('Chef Chiggy');
+    this.setChiggyBodyText(
+      'This game, SimuLearntion, is developed to assess the depletion of attention span among learners.\n\n' +
+      'This game soon will expand to cover more topics other than Physics!\n\n' +
+      'The game will include more exciting features in the future!'
+    );
+    this.setChiggyButtons([
+      { label: 'Back', onClick: () => this.showChiggyOptions() },
+      { label: 'Close', onClick: () => this.closeChiggyDialog() }
+    ]);
+  }
+
+  showChiggyFunFactTopics() {
+    this.chiggyDialogTitle.setText('Fun Fact Topics');
+    this.setChiggyBodyText('Pick a topic:');
+    this.setChiggyButtons([
+      { label: 'Electromagnetism', onClick: () => this.showChiggyFunFact('electromagnetism') },
+      { label: 'Projectile Motion', onClick: () => this.showChiggyFunFact('projectile') },
+      { label: 'Distance vs Displacement', onClick: () => this.showChiggyFunFact('distance') },
+      { label: 'Speed vs Acceleration', onClick: () => this.showChiggyFunFact('speed') },
+      { label: 'Quantum Mechanics', onClick: () => this.showChiggyFunFact('quantum') },
+      { label: 'Back', onClick: () => this.showChiggyOptions() }
+    ]);
+  }
+  
+  showChiggyFunFact(topic) {
+    const facts = {
+      electromagnetism:
+        'Magnets are like magic! Every single magnet, even the tiny one on your fridge, has two ends: a "hug" side and a "push" side. If you try to force two "push" sides together, they will wiggle and shove each other away!\n\n' +
+        'Lightning is a giant, sparkly high-five! Way up in the sky, fluffy cloud friends rub together and get super tickly with static electricity—just like when you slide down a slide and your hair goes poof! The giant sparkle (lightning) is their way of saying "Ouch, too tickly!" and high-fiving the ground.\n\n' +
+        'Light is a super-speedy dancer! Light is really, really shy. It\'s the fastest thing in the whole universe, and it always dances in a straight line. That\'s why you can\'t see around corners—the light doesn\'t know how to turn!',
+      projectile:
+        'When you throw your toy, gravity is playing catch! No matter how hard you throw a ball sideways, gravity is always pulling it straight down for a hug. That\'s why the ball makes a rainbow shape in the air before it plops on the ground.\n\n' +
+        'A paper airplane and a rock fall at the same speed! If you drop a heavy rock and a crumbled paper ball from the same high place, they\'ll hit the ground at the same time! The air just likes to push on the flat paper airplane more to give it a ride.\n\n' +
+        'To throw the farthest, aim for a flying kiss! If you want to throw something really, really far, don\'t throw it straight out or straight up. Throw it like you\'re blowing a kiss up to the sky! A nice, gentle upward angle makes it go the farthest.',
+      distance:
+        'Your toys know how far they\'ve wandered! If you push your toy car all around your room in a crazy path, the distance is how many inches its wheels rolled. The displacement is just how far it is from its starting point in a straight line, like a bird would fly.\n\n' +
+        'You can walk a long way and end up right next to your start! If you run a big, giant circle around the playground, you walk a big distance. But your displacement is zero because you finished right where you started—no closer to the swings than when you began!\n\n' +
+        'It\'s like a treasure map! The dotted path you follow around mountains and rivers is the distance. The big, straight "X marks the spot" line from "You Are Here" to the treasure is the displacement.',
+      speed:
+        'Speed is like a number on your scooter\'s magic meter. If the number says "5," you are zooming at that speed. Acceleration is what you feel when you push off the ground and that number gets bigger—your tummy feels funny because you\'re changing your speed!\n\n' +
+        'You can go super fast with no acceleration! On a swing, when you\'re at the very bottom and whooshing past your parents, you are at your fastest speed. But for just a tiny moment, you are not speeding up or slowing down—your acceleration is zero!\n\n' +
+        'Slowing down is just "backwards" acceleration! When you use the brakes on your bike, you are still accelerating! Your speed is changing, but it\'s getting smaller. So acceleration isn\'t just for speeding up, it\'s for any change in your zoom.',
+      quantum:
+        'Tiny particles can be in two places at once, like magic! It\'s like your toy car could be in your bedroom AND in the living room at the same time, and you only find out which room it\'s in when you go look for it. That\'s how tiny electrons play hide-and-seek!\n\n' +
+        'Particles can walk through walls! It\'s called "quantum tunneling." Imagine you\'re rolling a ball at a big hill. The hill is a wall. In our big world, the ball would just bounce back. But in this tiny world, there\'s a super tiny chance the ball could just magically appear on the other side of the hill without going over!\n\n' +
+        'Particles can be best friends forever, no matter what! If two tiny electrons become special friends (entangled), they become linked. If you make one electron spin to the left, its friend instantly spins to the right, even if it\'s on the other side of the universe! It\'s like having magical walkie-talkies that work faster than anything.'
+    };
+
+    this.chiggyDialogTitle.setText('Fun Fact');
+    const raw = facts[topic] || '';
+    this.chiggyFunFactPages = raw.split('\n\n').filter(Boolean);
+    this.chiggyFunFactTopic = topic;
+    this.showChiggyFunFactPage(0);
+  }
+
+  showChiggyFunFactPage(pageIndex) {
+    const pages = Array.isArray(this.chiggyFunFactPages) ? this.chiggyFunFactPages : [];
+    const total = pages.length;
+    const index = Math.min(Math.max(pageIndex, 0), Math.max(total - 1, 0));
+    this.chiggyFunFactIndex = index;
+
+    const text = pages[index] || '';
+    this.setChiggyBodyText(text);
+
+    const buttons = [];
+    if (index > 0) {
+      buttons.push({ label: 'Previous', onClick: () => this.showChiggyFunFactPage(index - 1) });
+    } else {
+      buttons.push({ label: 'Previous', onClick: () => {} });
+    }
+    if (index < total - 1) {
+      buttons.push({ label: 'Next', onClick: () => this.showChiggyFunFactPage(index + 1) });
+    } else {
+      buttons.push({ label: 'Next', onClick: () => {} });
+    }
+    buttons.push({ label: 'Topics', onClick: () => this.showChiggyFunFactTopics() });
+    buttons.push({ label: 'Close', onClick: () => this.closeChiggyDialog() });
+
+    this.setChiggyButtons(buttons);
+  }
+
+  setChiggyBodyText(text) {
+    if (!this.chiggyDialogBody) return;
+    if (this.chiggyTextTimer) {
+      this.chiggyTextTimer.remove(false);
+      this.chiggyTextTimer = null;
+    }
+
+    const fullText = String(text || '');
+    let index = 0;
+    this.chiggyDialogBody.setText('');
+
+    this.chiggyTextTimer = this.time.addEvent({
+      delay: 45,
+      loop: true,
+      callback: () => {
+        if (index >= fullText.length) {
+          if (this.chiggyTextTimer) {
+            this.chiggyTextTimer.remove(false);
+            this.chiggyTextTimer = null;
+          }
+          return;
+        }
+        this.chiggyDialogBody.setText(fullText.slice(0, index + 1));
+        index += 1;
+      }
+    });
   }
   
   shutdown() {

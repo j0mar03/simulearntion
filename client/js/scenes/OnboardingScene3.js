@@ -20,9 +20,23 @@ class OnboardingScene3 extends Phaser.Scene {
     sumi.setDepth(1);
     
     // Dialog box
-    const dialogBox = this.add.rectangle(width / 2, height - 120, width - 80, 140, 0x000000, 0.75);
-    dialogBox.setStrokeStyle(2, 0xffffff, 0.2);
+    const dialogBox = this.add.graphics();
     dialogBox.setDepth(5);
+    dialogBox.fillStyle(0x000000, 0.75);
+    dialogBox.lineStyle(2, 0xffffff, 0.2);
+    const dialogWidth = width - 80;
+    const dialogHeight = 140;
+    const dialogX = width / 2;
+    const dialogY = height - 120;
+    dialogBox.fillRoundedRect(dialogX - dialogWidth / 2, dialogY - dialogHeight / 2, dialogWidth, dialogHeight, 16);
+    dialogBox.strokeRoundedRect(dialogX - dialogWidth / 2, dialogY - dialogHeight / 2, dialogWidth, dialogHeight, 16);
+    const tailY = dialogY + 20;
+    dialogBox.fillTriangle(dialogX - dialogWidth / 2 + 10, tailY - 20,
+      dialogX - dialogWidth / 2 - 30, tailY,
+      dialogX - dialogWidth / 2 + 10, tailY + 20);
+    dialogBox.strokeTriangle(dialogX - dialogWidth / 2 + 10, tailY - 20,
+      dialogX - dialogWidth / 2 - 30, tailY,
+      dialogX - dialogWidth / 2 + 10, tailY + 20);
     
     const dialogText = [
       "hey. i'm sumi, your counselor. let’s build your avatar.",
@@ -35,11 +49,13 @@ class OnboardingScene3 extends Phaser.Scene {
       'take your time. this is how everyone will see you in-game.'
     ].join('\n');
     
-    this.add.text(220, height - 195, dialogText, {
+    const dialogTextObj = this.add.text(220, height - 195, '', {
       fontSize: '15px',
+      fontFamily: 'monospace',
       fill: '#ffffff',
       wordWrap: { width: width - 270 }
     }).setOrigin(0, 0).setDepth(6);
+    this.typeDialogText(dialogTextObj, dialogText);
     
     // Simple highlight placeholders
     const highlight1 = this.add.rectangle(width - 180, 150, 220, 90);
@@ -75,11 +91,52 @@ class OnboardingScene3 extends Phaser.Scene {
         this.game.userData.onboardingActive = true;
         this.game.userData.onboardingReturnScene = 'OnboardingScene4';
       }
+      if (this.dialogTypeTimer) {
+        this.dialogTypeTimer.remove(false);
+        this.dialogTypeTimer = null;
+      }
       this.scene.start('CustomScene');
     };
     
     btn.on('pointerdown', openEditor);
     this.input.keyboard.once('keydown-SPACE', openEditor);
+
+    const prevBtn = this.add.rectangle(80, height - 60, 120, 36, 0x667eea);
+    prevBtn.setInteractive({ useHandCursor: true });
+    this.add.text(80, height - 60, 'Previous', {
+      fontSize: '14px',
+      fill: '#ffffff'
+    }).setOrigin(0.5);
+    prevBtn.on('pointerdown', () => {
+      if (this.isTransitioning) return;
+      this.isTransitioning = true;
+      if (this.dialogTypeTimer) {
+        this.dialogTypeTimer.remove(false);
+        this.dialogTypeTimer = null;
+      }
+      this.cameras.main.fadeOut(500, 0, 0, 0);
+      this.time.delayedCall(520, () => {
+        this.scene.start('OnboardingScene2');
+      });
+    });
+
+    const nextBtn = this.add.rectangle(width - 80, height - 60, 120, 36, 0x667eea);
+    nextBtn.setInteractive({ useHandCursor: true });
+    this.add.text(width - 80, height - 60, 'Next', {
+      fontSize: '14px',
+      fill: '#ffffff'
+    }).setOrigin(0.5);
+    nextBtn.on('pointerdown', () => {
+      if (this.game.userData) {
+        this.game.userData.onboardingActive = true;
+        this.game.userData.onboardingReturnScene = 'OnboardingScene4';
+      }
+      if (this.dialogTypeTimer) {
+        this.dialogTypeTimer.remove(false);
+        this.dialogTypeTimer = null;
+      }
+      this.scene.start('OnboardingScene4');
+    });
 
     const skipText = this.add.text(width - 40, 24, 'Skip Tour', {
       fontSize: '14px',
@@ -90,7 +147,37 @@ class OnboardingScene3 extends Phaser.Scene {
     skipText.setInteractive({ useHandCursor: true });
     skipText.on('pointerdown', () => {
       localStorage.setItem('skipTour', 'true');
+      if (this.dialogTypeTimer) {
+        this.dialogTypeTimer.remove(false);
+        this.dialogTypeTimer = null;
+      }
       this.scene.start('LobbyScene');
+    });
+  }
+
+  typeDialogText(target, text) {
+    if (!target) return;
+    if (this.dialogTypeTimer) {
+      this.dialogTypeTimer.remove(false);
+      this.dialogTypeTimer = null;
+    }
+    const fullText = String(text || '');
+    let index = 0;
+    target.setText('');
+    this.dialogTypeTimer = this.time.addEvent({
+      delay: 45,
+      loop: true,
+      callback: () => {
+        if (index >= fullText.length) {
+          if (this.dialogTypeTimer) {
+            this.dialogTypeTimer.remove(false);
+            this.dialogTypeTimer = null;
+          }
+          return;
+        }
+        target.setText(fullText.slice(0, index + 1));
+        index += 1;
+      }
     });
   }
 }

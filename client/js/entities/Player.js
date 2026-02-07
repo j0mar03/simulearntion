@@ -301,22 +301,28 @@ class Player {
     this.isMoving = false;
     
     // Movement
-    if (this.cursors.left.isDown) {
+    const touchState = (window.touchControls && window.touchControls.state) ? window.touchControls.state : null;
+    const leftDown = (this.cursors && this.cursors.left && this.cursors.left.isDown) || (touchState && touchState.left);
+    const rightDown = (this.cursors && this.cursors.right && this.cursors.right.isDown) || (touchState && touchState.right);
+    const upDown = (this.cursors && this.cursors.up && this.cursors.up.isDown) || (touchState && touchState.up);
+    const downDown = (this.cursors && this.cursors.down && this.cursors.down.isDown) || (touchState && touchState.down);
+
+    if (leftDown) {
       this.sprite.body.setVelocityX(-this.speed);
       this.facing = 'left';
       this.isMoving = true;
       this.sprite.setFlipX(false); // Facing left (not flipped if sprite faces right by default)
-    } else if (this.cursors.right.isDown) {
+    } else if (rightDown) {
       this.sprite.body.setVelocityX(this.speed);
       this.facing = 'right';
       this.isMoving = true;
       this.sprite.setFlipX(true); // Facing right (flipped if sprite faces left by default)
     }
     
-    if (this.cursors.up.isDown) {
+    if (upDown) {
       this.sprite.body.setVelocityY(-this.speed);
       this.isMoving = true;
-    } else if (this.cursors.down.isDown) {
+    } else if (downDown) {
       this.sprite.body.setVelocityY(this.speed);
       this.isMoving = true;
     }
