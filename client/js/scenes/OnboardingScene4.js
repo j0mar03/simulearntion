@@ -88,6 +88,7 @@ class OnboardingScene4 extends Phaser.Scene {
           const userData = this.game.userData || JSON.parse(localStorage.getItem('user') || '{}');
           userData.achievements = data.achievements || userData.achievements || [];
           userData.currentTitle = 'The Trailblazer';
+          userData.lastAchievementId = 'trailblazer';
           this.game.userData = userData;
           localStorage.setItem('user', JSON.stringify(userData));
           const awarded = Array.isArray(data.awarded) ? data.awarded : [];

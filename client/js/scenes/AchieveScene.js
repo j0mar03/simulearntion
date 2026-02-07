@@ -9,11 +9,12 @@ class AchieveScene extends Phaser.Scene {
     const height = this.cameras.main.height;
     
     // Background - Use real achievement UI image from "Compilations of gokgok simulator 2000"
-    const achieveBg = this.add.image(0, 0, 'achievement-bg').setOrigin(0);
-    achieveBg.setDisplaySize(width, height);
+    this.achieveBg = this.add.image(width / 2, height / 2, 'achievement-bg').setOrigin(0.5);
+    this.achieveBg.setDisplaySize(width * 0.92, height * 0.92);
+    this.achieveBg.setDepth(0);
     
     // Title
-    this.add.text(width / 2, 30, 'Achievements & Unlocks', {
+    this.titleText = this.add.text(width / 2, 30, 'Achievements & Unlocks', {
       fontSize: '32px',
       fill: '#ffffff',
       backgroundColor: 'rgba(0, 0, 0, 0.7)',
@@ -21,12 +22,13 @@ class AchieveScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(10);
     
     // Back button - using real asset
-    const backBtn = this.add.image(50, 30, 'back-btn');
-    backBtn.setScale(0.15); // Much smaller size
-    backBtn.setInteractive({ useHandCursor: true });
-    backBtn.setDepth(10);
+    this.backBtn = this.add.image(50, 30, 'back-btn');
+    this.backBtn.setScale(0.15); // Much smaller size
+    this.backBtn.setInteractive({ useHandCursor: true });
+    this.backBtn.setDepth(10);
     
-    backBtn.on('pointerdown', () => {
+    this.backBtn.on('pointerdown', () => {
+      this.scene.stop('AchieveScene');
       this.scene.start('LobbyScene');
     });
     
@@ -39,6 +41,22 @@ class AchieveScene extends Phaser.Scene {
     
     // Display achievements
     this.displayAchievements();
+
+    if (!this._eventsBound) {
+      this._eventsBound = true;
+      this.events.on('wake', () => {
+        this.refreshAchievements();
+      });
+      this.events.on('resume', () => {
+        this.refreshAchievements();
+      });
+      this.events.on('shutdown', () => {
+        if (this.achievementsContainer) {
+          this.achievementsContainer.destroy(true);
+          this.achievementsContainer = null;
+        }
+      });
+    }
   }
   
   async loadAchievements() {
@@ -70,6 +88,8 @@ class AchieveScene extends Phaser.Scene {
     } else {
       this.achievementsContainer.removeAll(true);
     }
+    this.achievementsContainer.setDepth(5);
+    this.achievementsContainer.setVisible(true);
 
     const allAchievements = window.ACHIEVEMENTS || {};
     
@@ -98,9 +118,15 @@ class AchieveScene extends Phaser.Scene {
         earned ? 0x90ee90 : 0xcccccc);
       
       // Icon
-      const iconKey = earned ? achievement.icon : 'achievement-locked';
+      let iconKey = achievement.icon;
+      if (!this.textures.exists(iconKey)) {
+        iconKey = 'achievement-locked';
+      }
       const icon = this.add.image(xOffset + 30, yOffset, iconKey);
-      icon.setScale(0.35);
+      icon.setScale(0.1);
+      if (!earned) {
+        icon.setAlpha(0.35);
+      }
       
       // Name
       const name = this.add.text(xOffset + 70, yOffset - 15, achievement.name, {
@@ -115,6 +141,14 @@ class AchieveScene extends Phaser.Scene {
         fill: earned ? '#333333' : '#888888'
       });
 
+      if (earned && achievement.title) {
+        box.setInteractive({ useHandCursor: true });
+        icon.setInteractive({ useHandCursor: true });
+        const applyTitle = () => this.setPlayerTitle(achievement.title);
+        box.on('pointerdown', applyTitle);
+        icon.on('pointerdown', applyTitle);
+      }
+
       this.achievementsContainer.add([box, icon, name, desc]);
       
       // Move to next position
@@ -127,6 +161,25 @@ class AchieveScene extends Phaser.Scene {
         xOffset = 400;
       }
     });
+  }
+
+  setPlayerTitle(title) {
+    if (!title) return;
+    const userData = this.game.userData || JSON.parse(localStorage.getItem('user') || '{}');
+    userData.currentTitle = title;
+    this.game.userData = userData;
+    localStorage.setItem('user', JSON.stringify(userData));
+
+    const scenes = this.game && this.game.scene ? this.game.scene.getScenes(true) : [];
+    scenes.forEach(scene => {
+      if (scene.player && scene.player.setTitle) {
+        scene.player.setTitle(title);
+      }
+    });
+
+    if (window.socketManager && window.socketManager.showNotification) {
+      window.socketManager.showNotification(`Title set to: ${title}`, 'achievement');
+    }
   }
 
   async refreshAchievements() {

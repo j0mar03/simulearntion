@@ -434,7 +434,7 @@ class LobbyScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     this.profileAchievementIcon = this.add.image(100, -100, 'ach-trailblazer');
-    this.profileAchievementIcon.setScale(0.35);
+    this.profileAchievementIcon.setScale(0.1);
     this.profileAchievementIcon.setVisible(false);
 
     const closeBtn = this.add.rectangle(-120, 138, 24, 24, 0xff4444);
@@ -542,8 +542,19 @@ class LobbyScene extends Phaser.Scene {
     }
 
     if (this.profileAchievementIcon) {
-      const earned = Array.isArray(userData.achievements) && userData.achievements.includes('trailblazer');
-      this.profileAchievementIcon.setVisible(earned);
+      let iconKey = null;
+      const lastId = userData.lastAchievementId;
+      if (lastId && window.ACHIEVEMENTS && window.ACHIEVEMENTS[lastId]) {
+        iconKey = window.ACHIEVEMENTS[lastId].icon;
+      } else if (Array.isArray(userData.achievements) && userData.achievements.includes('trailblazer')) {
+        iconKey = 'ach-trailblazer';
+      }
+      if (iconKey && this.textures && this.textures.exists(iconKey)) {
+        this.profileAchievementIcon.setTexture(iconKey);
+        this.profileAchievementIcon.setVisible(true);
+      } else {
+        this.profileAchievementIcon.setVisible(false);
+      }
     }
   }
 

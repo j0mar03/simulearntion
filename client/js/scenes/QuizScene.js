@@ -27,7 +27,9 @@ class QuizScene extends Phaser.Scene {
     backBtn.setDepth(10);
     
     backBtn.on('pointerdown', () => {
-      if (this.currentQuestionIndex < QUIZ_QUESTIONS.length) {
+      const inTopic = this.questions && this.questions.length > 0;
+      const inProgress = inTopic && this.currentQuestionIndex < this.questions.length;
+      if (inProgress) {
         // Confirm before leaving
         const confirmed = confirm('Are you sure you want to leave the quiz? Progress will be saved.');
         if (!confirmed) return;
@@ -459,6 +461,9 @@ class QuizScene extends Phaser.Scene {
 
           const userData = this.game && this.game.userData ? this.game.userData : (JSON.parse(localStorage.getItem('user') || '{}'));
           userData.achievements = achievements;
+          if (awarded.length > 0) {
+            userData.lastAchievementId = awarded[awarded.length - 1].id;
+          }
           if (this.game && this.game.userData) {
             this.game.userData = userData;
           }
