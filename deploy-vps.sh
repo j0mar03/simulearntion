@@ -142,14 +142,20 @@ for i in {1..30}; do
     sleep 1
 done
 
-# Run migrations
+# Run migrations/schema sync
 log_info "Step 7: Running database migrations..."
 docker compose exec -T app npx prisma migrate deploy || log_warning "Migrations had issues (might be ok)"
+
+log_info "Step 8: Syncing Prisma schema (db push)..."
+docker compose exec -T app npx prisma db push || log_warning "Prisma db push had issues (might be ok)"
+
+log_info "Step 9: Ensuring admin account exists..."
+docker compose exec -T app node scripts/create-admin.js || log_warning "Admin creation script had issues (might be ok)"
 
 # ============================================================================
 # Step 6: Health Check
 # ============================================================================
-log_info "Step 8: Performing health check..."
+log_info "Step 10: Performing health check..."
 sleep 5
 
 for i in {1..10}; do
