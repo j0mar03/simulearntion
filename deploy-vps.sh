@@ -83,6 +83,9 @@ fi
 # ============================================================================
 log_info "Step 2: Setting up environment..."
 
+DOMAIN="simulearntion.sehs.online"
+CLIENT_URL="https://${DOMAIN}"
+
 if [ ! -f ".env" ]; then
     if [ -f ".env.docker" ]; then
         cp .env.docker .env
@@ -96,6 +99,14 @@ if [ ! -f ".env" ]; then
     fi
 fi
 
+# Set CLIENT_URL to your domain (update if already present)
+if grep -q "^CLIENT_URL=" .env 2>/dev/null; then
+    sed -i "s|^CLIENT_URL=.*|CLIENT_URL=${CLIENT_URL}|" .env
+else
+    echo "CLIENT_URL=${CLIENT_URL}" >> .env
+fi
+log_success "Configured CLIENT_URL=${CLIENT_URL}"
+
 # Generate secure JWT secret if needed
 if grep -q "change-this-in-production" .env 2>/dev/null; then
     log_info "Generating secure JWT secret..."
@@ -105,27 +116,58 @@ if grep -q "change-this-in-production" .env 2>/dev/null; then
 fi
 
 # ============================================================================
-# Step 3: Pull Latest Changes (if from Git)
+# Step 3: Nginx + SSL (Cloudflare Full Strict)
+# ============================================================================
+log_info "Step 3: Installing Nginx and Certbot..."
+sudo apt-get update
+sudo apt-get install -y nginx certbot python3-certbot-nginx
+
+log_info "Step 4: Configuring Nginx for ${DOMAIN}..."
+sudo tee /etc/nginx/sites-available/simulearntion > /dev/null <<EOF
+server {
+    listen 80;
+    server_name ${DOMAIN};
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+    }
+}
+EOF
+
+sudo ln -sf /etc/nginx/sites-available/simulearntion /etc/nginx/sites-enabled/simulearntion
+sudo nginx -t
+sudo systemctl restart nginx
+
+log_info "Step 5: Requesting Let's Encrypt certificate..."
+sudo certbot --nginx -d ${DOMAIN} --non-interactive --agree-tos -m admin@${DOMAIN} || log_warning "Certbot failed - re-run after DNS is ready"
+
+# ============================================================================
+# Step 6: Pull Latest Changes (if from Git)
 # ============================================================================
 if [ -d ".git" ]; then
-    log_info "Step 3: Checking for updates from Git..."
+    log_info "Step 6: Checking for updates from Git..."
     git pull origin main || log_warning "Could not pull from Git (might be first deployment)"
 fi
 
 # ============================================================================
-# Step 4: Build and Start Services
+# Step 7: Build and Start Services
 # ============================================================================
-log_info "Step 4: Building Docker images..."
+log_info "Step 7: Building Docker images..."
 docker compose build --no-cache
 
-log_info "Step 5: Starting services..."
+log_info "Step 8: Starting services..."
 docker compose down 2>/dev/null || true
 docker compose up -d
 
 # ============================================================================
-# Step 5: Wait for Services
+# Step 9: Wait for Services
 # ============================================================================
-log_info "Step 6: Waiting for services to initialize..."
+log_info "Step 9: Waiting for services to initialize..."
 sleep 10
 
 # Check PostgreSQL
@@ -143,19 +185,19 @@ for i in {1..30}; do
 done
 
 # Run migrations/schema sync
-log_info "Step 7: Running database migrations..."
+log_info "Step 10: Running database migrations..."
 docker compose exec -T app npx prisma migrate deploy || log_warning "Migrations had issues (might be ok)"
 
-log_info "Step 8: Syncing Prisma schema (db push)..."
+log_info "Step 11: Syncing Prisma schema (db push)..."
 docker compose exec -T app npx prisma db push || log_warning "Prisma db push had issues (might be ok)"
 
-log_info "Step 9: Ensuring admin account exists..."
+log_info "Step 12: Ensuring admin account exists..."
 docker compose exec -T app node scripts/create-admin.js || log_warning "Admin creation script had issues (might be ok)"
 
 # ============================================================================
 # Step 6: Health Check
 # ============================================================================
-log_info "Step 10: Performing health check..."
+log_info "Step 13: Performing health check..."
 sleep 5
 
 for i in {1..10}; do
@@ -186,6 +228,7 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  📱 Access the game:"
 echo "     Local:    http://localhost:3000"
+echo "     Domain:   ${CLIENT_URL}"
 if [ "$LOCAL_IP" != "localhost" ]; then
     echo "     Network:  http://${LOCAL_IP}:3000"
 fi
