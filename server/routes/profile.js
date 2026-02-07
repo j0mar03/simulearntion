@@ -64,6 +64,34 @@ router.get('/', authMiddleware, async (req, res) => {
       correctAnswers,
       wrongAnswers: totalQuizzes - correctAnswers
     };
+
+    // Compute XP and Erudition Level from quiz attempts
+    const sessionsForXp = await prisma.session.findMany({
+      where: { userId: req.userId },
+      include: { quizAttempts: true }
+    });
+    let totalCorrect = 0;
+    let totalIncorrect = 0;
+    let bonus = 0;
+    const topicScores = new Map();
+    sessionsForXp.forEach((session) => {
+      session.quizAttempts.forEach((q) => {
+        if (q.isCorrect) totalCorrect += 1;
+        else totalIncorrect += 1;
+        const key = `${session.id}:${q.topic}`;
+        const stat = topicScores.get(key) || { correct: 0, total: 0 };
+        stat.total += 1;
+        if (q.isCorrect) stat.correct += 1;
+        topicScores.set(key, stat);
+      });
+    });
+    topicScores.forEach((stat) => {
+      if (stat.total >= 5 && stat.correct === stat.total) {
+        bonus += 5;
+      }
+    });
+    const xp = (totalCorrect * 1) + (totalIncorrect * 0.2) + bonus;
+    const eruditionLevel = Math.floor(xp / 5) + 1;
     
     // Get best score
     const sessions = await prisma.session.findMany({
@@ -93,7 +121,9 @@ router.get('/', authMiddleware, async (req, res) => {
         totalQuizzes: stats.totalQuizzes,
         correctAnswers: stats.correctAnswers,
         wrongAnswers: stats.wrongAnswers,
-        bestEngagementScore: sessions[0]?.engagementScore || 0
+        bestEngagementScore: sessions[0]?.engagementScore || 0,
+        xp,
+        eruditionLevel
       }
     });
   } catch (error) {

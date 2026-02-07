@@ -128,6 +128,12 @@ async function initializeGame() {
         if (Array.isArray(profileData.achievements)) {
           userData.achievements = profileData.achievements.map(a => a.achievementId);
         }
+        if (profileData.stats && profileData.stats.xp !== undefined) {
+          userData.xp = profileData.stats.xp;
+        }
+        if (profileData.stats && profileData.stats.eruditionLevel !== undefined) {
+          userData.eruditionLevel = profileData.stats.eruditionLevel;
+        }
         
         // Ensure id exists
         if (!userData.id && profileData.id) {
