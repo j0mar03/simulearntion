@@ -67,8 +67,13 @@ else
 fi
 
 # Check Docker Compose
-if ! command -v docker compose &> /dev/null && ! command -v docker-compose &> /dev/null; then
-    log_error "Docker Compose not found!"
+COMPOSE_CMD=""
+if docker compose version &> /dev/null; then
+    COMPOSE_CMD="docker compose"
+elif command -v docker-compose &> /dev/null; then
+    COMPOSE_CMD="docker-compose"
+else
+    log_error "Docker Compose not found! Install docker-compose-plugin or docker-compose."
     exit 1
 fi
 
@@ -158,11 +163,11 @@ fi
 # Step 7: Build and Start Services
 # ============================================================================
 log_info "Step 7: Building Docker images..."
-docker compose build --no-cache
+${COMPOSE_CMD} build --no-cache
 
 log_info "Step 8: Starting services..."
-docker compose down 2>/dev/null || true
-docker compose up -d
+${COMPOSE_CMD} down 2>/dev/null || true
+${COMPOSE_CMD} up -d
 
 # ============================================================================
 # Step 9: Wait for Services
@@ -172,13 +177,13 @@ sleep 10
 
 # Check PostgreSQL
 for i in {1..30}; do
-    if docker compose exec -T postgres pg_isready -U gokgok_user &> /dev/null; then
+    if ${COMPOSE_CMD} exec -T postgres pg_isready -U gokgok_user &> /dev/null; then
         log_success "PostgreSQL is ready"
         break
     fi
     if [ $i -eq 30 ]; then
         log_error "PostgreSQL failed to start!"
-        docker compose logs postgres
+        ${COMPOSE_CMD} logs postgres
         exit 1
     fi
     sleep 1
@@ -186,13 +191,13 @@ done
 
 # Run migrations/schema sync
 log_info "Step 10: Running database migrations..."
-docker compose exec -T app npx prisma migrate deploy || log_warning "Migrations had issues (might be ok)"
+${COMPOSE_CMD} exec -T app npx prisma migrate deploy || log_warning "Migrations had issues (might be ok)"
 
 log_info "Step 11: Syncing Prisma schema (db push)..."
-docker compose exec -T app npx prisma db push || log_warning "Prisma db push had issues (might be ok)"
+${COMPOSE_CMD} exec -T app npx prisma db push || log_warning "Prisma db push had issues (might be ok)"
 
 log_info "Step 12: Ensuring admin account exists..."
-docker compose exec -T app node scripts/create-admin.js || log_warning "Admin creation script had issues (might be ok)"
+${COMPOSE_CMD} exec -T app node scripts/create-admin.js || log_warning "Admin creation script had issues (might be ok)"
 
 # ============================================================================
 # Step 6: Health Check
@@ -234,11 +239,11 @@ if [ "$LOCAL_IP" != "localhost" ]; then
 fi
 echo ""
 echo "  🔧 Useful commands:"
-echo "     View logs:       docker compose logs -f"
-echo "     Stop:            docker compose down"
-echo "     Restart:         docker compose restart app"
-echo "     Status:          docker compose ps"
+echo "     View logs:       ${COMPOSE_CMD} logs -f"
+echo "     Stop:            ${COMPOSE_CMD} down"
+echo "     Restart:         ${COMPOSE_CMD} restart app"
+echo "     Status:          ${COMPOSE_CMD} ps"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-docker compose ps
+${COMPOSE_CMD} ps
