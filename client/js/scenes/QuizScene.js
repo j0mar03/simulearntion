@@ -425,6 +425,11 @@ class QuizScene extends Phaser.Scene {
     // Update local per-topic stats for profile display
     if (this.selectedTopic) {
       const userData = this.game && this.game.userData ? this.game.userData : (JSON.parse(localStorage.getItem('user') || '{}'));
+      const incorrect = this.questions.length - this.score;
+      const bonus = this.score === this.questions.length ? 5 : 0;
+      const xpDelta = (this.score * 1) + (incorrect * 0.2) + bonus;
+      userData.xp = (userData.xp || 0) + xpDelta;
+      userData.eruditionLevel = Math.floor(userData.xp / 5) + 1;
       userData.quizTopicStats = userData.quizTopicStats || {};
       const existing = userData.quizTopicStats[this.selectedTopic] || {};
       const best = Math.max(existing.best || 0, this.score);
@@ -437,6 +442,13 @@ class QuizScene extends Phaser.Scene {
         this.game.userData = userData;
       }
       localStorage.setItem('user', JSON.stringify(userData));
+
+      const scenes = window.game && window.game.scene ? window.game.scene.getScenes(true) : [];
+      scenes.forEach(scene => {
+        if (scene.player && scene.player.setLevel) {
+          scene.player.setLevel(userData.eruditionLevel);
+        }
+      });
     }
 
     // Sync quiz results to server and refresh achievements/profile

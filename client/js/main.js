@@ -202,6 +202,12 @@ async function initializeGame() {
       if (!userData.achievements) {
         userData.achievements = [];
       }
+      if (!userData.xp) {
+        userData.xp = 0;
+      }
+      if (!userData.eruditionLevel) {
+        userData.eruditionLevel = Math.floor(userData.xp / 5) + 1;
+      }
       
       game.userData = userData;
       game.token = token;
@@ -219,15 +225,21 @@ async function initializeGame() {
         if (!userData.username) {
           userData.username = 'Player';
         }
-        if (!userData.unlockedItems) {
-          userData.unlockedItems = {};
-        }
-        if (!userData.currentTitle) {
-          userData.currentTitle = window.DEFAULT_PLAYER_TITLE || 'Rookie';
-        }
-        if (!userData.titles) {
-          userData.titles = [];
-        }
+      if (!userData.unlockedItems) {
+        userData.unlockedItems = {};
+      }
+      if (!userData.currentTitle) {
+        userData.currentTitle = window.DEFAULT_PLAYER_TITLE || 'Rookie';
+      }
+      if (!userData.titles) {
+        userData.titles = [];
+      }
+      if (!userData.xp) {
+        userData.xp = 0;
+      }
+      if (!userData.eruditionLevel) {
+        userData.eruditionLevel = Math.floor(userData.xp / 5) + 1;
+      }
         if (!userData.achievements) {
           userData.achievements = [];
         }

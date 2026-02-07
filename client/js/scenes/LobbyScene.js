@@ -722,6 +722,28 @@ class LobbyScene extends Phaser.Scene {
     }
   }
 
+  onPlayerLevelUpdated(data) {
+    if (data.userId && this.player && this.game && this.game.userData && data.userId === this.game.userData.id) {
+      if (this.player.setLevel) {
+        this.player.setLevel(data.level);
+      }
+      return;
+    }
+
+    let otherPlayer = data.socketId ? this.otherPlayers.get(data.socketId) : null;
+    if (!otherPlayer && data.userId) {
+      for (const p of this.otherPlayers.values()) {
+        if (p.userId === data.userId) {
+          otherPlayer = p;
+          break;
+        }
+      }
+    }
+    if (otherPlayer && otherPlayer.setLevel) {
+      otherPlayer.setLevel(data.level);
+    }
+  }
+
   createChiggyDialog() {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;

@@ -8,6 +8,14 @@ const prisma = new PrismaClient();
 const roomManager = new RoomManager();
 const achievementManager = new AchievementManager(prisma);
 
+function computeEruditionLevel(achievements) {
+  const ids = new Set((achievements || []).map(a => a.achievementId || a.id || a));
+  if (ids.has('seasoned_learner')) return 15;
+  if (ids.has('engaged_rookie')) return 10;
+  if (ids.has('freshman')) return 5;
+  return 1;
+}
+
 function initializeSocketHandler(io) {
   // Middleware to verify JWT token
   io.use(async (socket, next) => {
@@ -67,6 +75,7 @@ function initializeSocketHandler(io) {
           }
         });
         
+        let eruditionLevel = 1;
         if (user) {
           // Validate avatar config
           const body = avatarConfig.body || 'u1';
@@ -91,6 +100,8 @@ function initializeSocketHandler(io) {
             });
             socket.userData.avatarConfig = avatarConfig;
           }
+
+          eruditionLevel = computeEruditionLevel(user.achievements);
         }
         
         const player = {
@@ -98,6 +109,7 @@ function initializeSocketHandler(io) {
           userId: socket.userId,
           username: socket.username,
           avatarConfig: avatarConfig,
+          eruditionLevel,
           x: 400,
           y: 300,
           state: 'idle'
@@ -188,6 +200,7 @@ function initializeSocketHandler(io) {
             }
           });
           
+          let eruditionLevel = 1;
           if (user) {
             // Validate avatar config
             const body = avatarConfig.body || 'u1';
@@ -203,6 +216,7 @@ function initializeSocketHandler(io) {
             if (!headUnlocked) {
               avatarConfig.head = 'none';
             }
+            eruditionLevel = computeEruditionLevel(user.achievements);
           }
           
           // Remove from lobby
@@ -216,6 +230,7 @@ function initializeSocketHandler(io) {
             userId: socket.userId,
             username: socket.username,
             avatarConfig: avatarConfig,
+            eruditionLevel,
             x: 250,
             y: 400,
             state: 'idle'

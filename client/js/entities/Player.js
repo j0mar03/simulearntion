@@ -81,6 +81,17 @@ class Player {
       this.nameText.setOrigin(0.5);
       this.nameText.setDepth(1000); // Always on top
       
+      // Create level label
+      const level = (scene && scene.game && scene.game.userData && scene.game.userData.eruditionLevel) || 1;
+      this.levelText = scene.add.text(x, y - 88, `Lv ${level}`, {
+        fontSize: '12px',
+        fill: '#7ed6ff',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        padding: { x: 4, y: 1 }
+      });
+      this.levelText.setOrigin(0.5);
+      this.levelText.setDepth(1000);
+
       // Create title label
       this.titleText = scene.add.text(x, y - 52, this.title, {
         fontSize: '12px',
@@ -125,6 +136,7 @@ class Player {
       this.sprite = null;
       this.cursors = null;
       this.nameText = null;
+      this.levelText = null;
       this.titleText = null;
       // Don't throw - allow scene to continue
     }
@@ -401,8 +413,11 @@ class Player {
       this.sprite.setActive(true);
     }
     
-    // Update name label position
+    // Update labels position
     this.nameText.setPosition(this.sprite.x, this.sprite.y - 70);
+    if (this.levelText) {
+      this.levelText.setPosition(this.sprite.x, this.sprite.y - 88);
+    }
     if (this.titleText) {
       this.titleText.setPosition(this.sprite.x, this.sprite.y - 52);
     }
@@ -427,6 +442,9 @@ class Player {
   setPosition(x, y) {
     this.sprite.setPosition(x, y);
     this.nameText.setPosition(x, y - 70);
+    if (this.levelText) {
+      this.levelText.setPosition(x, y - 88);
+    }
     if (this.titleText) {
       this.titleText.setPosition(x, y - 52);
     }
@@ -438,6 +456,12 @@ class Player {
     if (this.titleText) {
       this.titleText.setText(title);
     }
+  }
+
+  setLevel(level) {
+    if (!this.levelText) return;
+    const safeLevel = level && level > 0 ? level : 1;
+    this.levelText.setText(`Lv ${safeLevel}`);
   }
   
   destroy() {

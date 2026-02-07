@@ -82,12 +82,30 @@ class AchievementManager {
       }
     });
     
-    // Check erudition achievements (based on total correct answers)
+    // Check erudition achievements (based on XP derived from quiz attempts)
     if (achievement.type === 'erudition') {
-      const totalCorrect = user.sessions.reduce((sum, session) => {
-        return sum + session.quizAttempts.filter(q => q.isCorrect).length;
-      }, 0);
-      const eruditionLevel = Math.floor(totalCorrect / 5);
+      let totalCorrect = 0;
+      let totalIncorrect = 0;
+      let bonus = 0;
+      const topicScores = new Map();
+      user.sessions.forEach((session) => {
+        session.quizAttempts.forEach((q) => {
+          if (q.isCorrect) totalCorrect += 1;
+          else totalIncorrect += 1;
+          const key = `${session.id}:${q.topic}`;
+          const stat = topicScores.get(key) || { correct: 0, total: 0 };
+          stat.total += 1;
+          if (q.isCorrect) stat.correct += 1;
+          topicScores.set(key, stat);
+        });
+      });
+      topicScores.forEach((stat) => {
+        if (stat.total >= 5 && stat.correct === stat.total) {
+          bonus += 5;
+        }
+      });
+      const xp = (totalCorrect * 1) + (totalIncorrect * 0.2) + bonus;
+      const eruditionLevel = Math.floor(xp / 5) + 1;
       if (achievementId === 'freshman') {
         earned = eruditionLevel >= 5;
       } else if (achievementId === 'engaged_rookie') {

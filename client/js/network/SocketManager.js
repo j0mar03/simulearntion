@@ -168,6 +168,10 @@ class SocketManager {
     this.socket.on('player-quiz-progress', (data) => {
       if (scene.onPlayerQuizProgress) scene.onPlayerQuizProgress(data);
     });
+
+    this.socket.on('player-level-updated', (data) => {
+      if (scene.onPlayerLevelUpdated) scene.onPlayerLevelUpdated(data);
+    });
     
     this.socket.on('player-achievement', (data) => {
       if (scene.onPlayerAchievement) scene.onPlayerAchievement(data);
@@ -202,6 +206,7 @@ class SocketManager {
     this.socket.off('player-avatar-changed');
     this.socket.off('player-studying');
     this.socket.off('player-quiz-progress');
+    this.socket.off('player-level-updated');
     this.socket.off('player-achievement');
     this.socket.off('chat-message');
     this.socket.off('private-message');

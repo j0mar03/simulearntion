@@ -33,6 +33,8 @@ const io = new Server(server, {
   transports: ['websocket', 'polling']
 });
 
+app.set('io', io);
+
 // Middleware
 app.use(helmet({
   contentSecurityPolicy: false, // Disable for development, enable in production

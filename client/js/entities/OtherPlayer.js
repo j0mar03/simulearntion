@@ -7,6 +7,7 @@ class OtherPlayer {
     this.username = playerData.username;
     const fallbackTitle = window.DEFAULT_PLAYER_TITLE || 'Rookie';
     this.title = playerData.title || playerData.currentTitle || fallbackTitle;
+    this.level = playerData.eruditionLevel || playerData.level || 1;
     this.avatarConfig = playerData.avatarConfig || { body: 'u1', head: 'none' };
     
     // Get the correct animation key based on avatar configuration
@@ -63,6 +64,15 @@ class OtherPlayer {
     });
     this.nameText.setOrigin(0.5);
     this.nameText.setDepth(1000); // Always on top
+
+    this.levelText = scene.add.text(startX, startY - 88, `Lv ${this.level}`, {
+      fontSize: '12px',
+      fill: '#7ed6ff',
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+      padding: { x: 4, y: 1 }
+    });
+    this.levelText.setOrigin(0.5);
+    this.levelText.setDepth(1000);
     
     // Create title label
     this.titleText = scene.add.text(startX, startY - 52, this.title, {
@@ -389,18 +399,24 @@ class OtherPlayer {
     }
     
     // Update name label position to follow sprite
-    if (this.nameText && this.sprite) {
-      this.nameText.setPosition(this.sprite.x, this.sprite.y - 70);
-      // Ensure name label is visible
-      if (!this.nameText.visible) {
-        this.nameText.setVisible(true);
+      if (this.nameText && this.sprite) {
+        this.nameText.setPosition(this.sprite.x, this.sprite.y - 70);
+        // Ensure name label is visible
+        if (!this.nameText.visible) {
+          this.nameText.setVisible(true);
+        }
       }
-    }
-    if (this.titleText && this.sprite) {
-      this.titleText.setPosition(this.sprite.x, this.sprite.y - 52);
-      if (!this.titleText.visible) {
-        this.titleText.setVisible(true);
+      if (this.levelText && this.sprite) {
+        this.levelText.setPosition(this.sprite.x, this.sprite.y - 88);
+        if (!this.levelText.visible) {
+          this.levelText.setVisible(true);
+        }
       }
+      if (this.titleText && this.sprite) {
+        this.titleText.setPosition(this.sprite.x, this.sprite.y - 52);
+        if (!this.titleText.visible) {
+          this.titleText.setVisible(true);
+        }
     }
   }
   
@@ -427,6 +443,9 @@ class OtherPlayer {
         if (this.nameText) {
           this.nameText.setPosition(this.targetX, this.targetY - 70);
         }
+        if (this.levelText) {
+          this.levelText.setPosition(this.targetX, this.targetY - 88);
+        }
         if (this.titleText) {
           this.titleText.setPosition(this.targetX, this.targetY - 52);
         }
@@ -450,6 +469,9 @@ class OtherPlayer {
     this.targetX = x;
     this.targetY = y;
     this.nameText.setPosition(x, y - 70);
+    if (this.levelText) {
+      this.levelText.setPosition(x, y - 88);
+    }
     if (this.titleText) {
       this.titleText.setPosition(x, y - 52);
     }
@@ -462,10 +484,21 @@ class OtherPlayer {
       this.titleText.setText(title);
     }
   }
+
+  setLevel(level) {
+    const safeLevel = level && level > 0 ? level : 1;
+    this.level = safeLevel;
+    if (this.levelText) {
+      this.levelText.setText(`Lv ${safeLevel}`);
+    }
+  }
   
   destroy() {
     this.sprite.destroy();
     this.nameText.destroy();
+    if (this.levelText) {
+      this.levelText.destroy();
+    }
     if (this.titleText) {
       this.titleText.destroy();
     }
