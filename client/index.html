@@ -68,12 +68,18 @@
     
     <!-- Chat UI (will be shown in-game) -->
     <div id="chat-container" style="display:none;">
+        <button id="chat-close" class="chat-close" aria-label="Close chat">×</button>
         <div id="chat-reply-indicator" style="display:none;"></div>
         <div id="chat-messages"></div>
         <div id="chat-input-container">
+            <button id="chat-emoji-btn" class="chat-emoji-btn" aria-label="Emoji">😊</button>
             <input type="text" id="chat-input" placeholder="Press Enter to chat..." maxlength="200">
         </div>
     </div>
+
+    <div id="emoji-picker" class="emoji-picker" style="display:none;"></div>
+
+    <button id="chat-toggle" class="chat-toggle" style="display:none;">Chat</button>
     
     <!-- Player List UI (will be shown in-game) -->
     <div id="players-list" style="display:none;">
@@ -82,14 +88,10 @@
     </div>
 
     <!-- Touch Controls (mobile) -->
-    <div id="touch-controls" class="touch-controls" aria-hidden="true">
-        <div class="touch-dpad">
-            <button class="touch-btn touch-up" data-dir="up" aria-label="Move up">▲</button>
-            <button class="touch-btn touch-left" data-dir="left" aria-label="Move left">◀</button>
-            <button class="touch-btn touch-right" data-dir="right" aria-label="Move right">▶</button>
-            <button class="touch-btn touch-down" data-dir="down" aria-label="Move down">▼</button>
-        </div>
-    </div>
+    <div id="touch-controls" class="touch-controls" aria-hidden="true"></div>
+
+    <!-- Fullscreen Button (mobile) -->
+    <button id="fullscreen-btn" class="fullscreen-btn" aria-label="Fullscreen">Fullscreen</button>
 
     <!-- Profile Button -->
     <button id="profile-open" style="display:none;">Profile</button>

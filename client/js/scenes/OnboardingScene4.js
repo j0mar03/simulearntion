@@ -73,6 +73,32 @@ class OnboardingScene4 extends Phaser.Scene {
         this.dialogTypeTimer.remove(false);
         this.dialogTypeTimer = null;
       }
+      const token = localStorage.getItem('token');
+      if (token) {
+        fetch('/api/achievements/award', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ achievementId: 'trailblazer' })
+        }).then(async (res) => {
+          if (!res.ok) return;
+          const data = await res.json();
+          const userData = this.game.userData || JSON.parse(localStorage.getItem('user') || '{}');
+          userData.achievements = data.achievements || userData.achievements || [];
+          userData.currentTitle = 'The Trailblazer';
+          this.game.userData = userData;
+          localStorage.setItem('user', JSON.stringify(userData));
+          const awarded = Array.isArray(data.awarded) ? data.awarded : [];
+          if (window.socketManager && awarded.length > 0) {
+            awarded.forEach((a) => {
+              const name = a.name || (window.ACHIEVEMENTS && window.ACHIEVEMENTS[a.id] ? window.ACHIEVEMENTS[a.id].name : a.id);
+              window.socketManager.earnAchievement(a.id, name);
+            });
+          }
+        }).catch(() => {});
+      }
       this.scene.start('LobbyScene');
     };
     

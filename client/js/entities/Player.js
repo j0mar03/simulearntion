@@ -307,24 +307,38 @@ class Player {
     const upDown = (this.cursors && this.cursors.up && this.cursors.up.isDown) || (touchState && touchState.up);
     const downDown = (this.cursors && this.cursors.down && this.cursors.down.isDown) || (touchState && touchState.down);
 
-    if (leftDown) {
-      this.sprite.body.setVelocityX(-this.speed);
-      this.facing = 'left';
-      this.isMoving = true;
-      this.sprite.setFlipX(false); // Facing left (not flipped if sprite faces right by default)
-    } else if (rightDown) {
-      this.sprite.body.setVelocityX(this.speed);
-      this.facing = 'right';
-      this.isMoving = true;
-      this.sprite.setFlipX(true); // Facing right (flipped if sprite faces left by default)
-    }
-    
-    if (upDown) {
-      this.sprite.body.setVelocityY(-this.speed);
-      this.isMoving = true;
-    } else if (downDown) {
-      this.sprite.body.setVelocityY(this.speed);
-      this.isMoving = true;
+    const touchActive = touchState && touchState.active;
+    if (touchActive) {
+      const vx = touchState.axisX * this.speed;
+      const vy = touchState.axisY * this.speed;
+      this.sprite.body.setVelocity(vx, vy);
+      if (Math.abs(vx) > 1) {
+        this.facing = vx < 0 ? 'left' : 'right';
+        this.sprite.setFlipX(vx > 0);
+      }
+      if (Math.abs(vx) > 1 || Math.abs(vy) > 1) {
+        this.isMoving = true;
+      }
+    } else {
+      if (leftDown) {
+        this.sprite.body.setVelocityX(-this.speed);
+        this.facing = 'left';
+        this.isMoving = true;
+        this.sprite.setFlipX(false); // Facing left
+      } else if (rightDown) {
+        this.sprite.body.setVelocityX(this.speed);
+        this.facing = 'right';
+        this.isMoving = true;
+        this.sprite.setFlipX(true); // Facing right
+      }
+      
+      if (upDown) {
+        this.sprite.body.setVelocityY(-this.speed);
+        this.isMoving = true;
+      } else if (downDown) {
+        this.sprite.body.setVelocityY(this.speed);
+        this.isMoving = true;
+      }
     }
     
     // Play animation when moving, show first frame when idle

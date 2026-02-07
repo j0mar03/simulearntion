@@ -180,8 +180,7 @@ body {
 /* Touch Controls */
 .touch-controls {
     position: fixed;
-    bottom: 24px;
-    left: 24px;
+    inset: 0;
     z-index: 200;
     display: none;
     pointer-events: none;
@@ -191,40 +190,43 @@ body {
     display: block;
 }
 
-.touch-dpad {
-    display: grid;
-    grid-template-columns: repeat(3, 64px);
-    grid-template-rows: repeat(3, 64px);
-    gap: 8px;
-    pointer-events: auto;
-}
-
-.touch-btn {
-    width: 64px;
-    height: 64px;
-    border-radius: 14px;
+.touch-joystick {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.35);
     border: 2px solid rgba(255, 255, 255, 0.25);
-    background: rgba(0, 0, 0, 0.55);
-    color: #ffffff;
-    font-size: 22px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    pointer-events: auto;
     touch-action: none;
-    user-select: none;
 }
 
-.touch-btn:active,
-.touch-btn.active {
+.touch-joystick-handle {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
     background: rgba(102, 126, 234, 0.9);
-    border-color: rgba(255, 255, 255, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
 }
 
-.touch-up { grid-column: 2; grid-row: 1; }
-.touch-left { grid-column: 1; grid-row: 2; }
-.touch-right { grid-column: 3; grid-row: 2; }
-.touch-down { grid-column: 2; grid-row: 3; }
+.fullscreen-btn {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 300;
+    padding: 8px 10px;
+    font-size: 12px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.75);
+    color: #ffffff;
+    cursor: pointer;
+    display: none;
+}
 
 /* Chat UI */
 #chat-container {
@@ -236,6 +238,35 @@ body {
     border-radius: 10px;
     padding: 10px;
     z-index: 100;
+}
+
+.chat-close {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 22px;
+}
+
+.chat-toggle {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 110;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.8);
+    color: #ffffff;
+    font-size: 13px;
+    cursor: pointer;
 }
 
 #chat-reply-indicator {
@@ -285,6 +316,19 @@ body {
 
 #chat-input-container {
     display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.chat-emoji-btn {
+    background: rgba(255,255,255,0.2);
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 16px;
 }
 
 #chat-input {
@@ -303,6 +347,29 @@ body {
 #chat-input:focus {
     outline: none;
     background: rgba(255,255,255,0.3);
+}
+
+.emoji-picker {
+    position: fixed;
+    bottom: 110px;
+    left: 20px;
+    width: 240px;
+    max-height: 200px;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.85);
+    border-radius: 10px;
+    padding: 8px;
+    z-index: 120;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 6px;
+}
+
+.emoji-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
 }
 
 /* Player List */
@@ -484,6 +551,11 @@ body {
         bottom: 10px;
         left: 10px;
     }
+
+    .chat-toggle {
+        bottom: 10px;
+        left: 10px;
+    }
     
     #players-list {
         width: 150px;
@@ -512,5 +584,9 @@ body {
     #players-list,
     #profile-open {
         display: none !important;
+    }
+    
+    .fullscreen-btn {
+        display: block;
     }
 }

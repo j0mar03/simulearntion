@@ -60,7 +60,23 @@ function ensureTouchControls() {
   if (typeof TouchControls !== 'undefined') {
     window.touchControls = new TouchControls();
     touchControlsInitialized = true;
+    setupFullscreenButton();
   }
+}
+
+function setupFullscreenButton() {
+  const btn = document.getElementById('fullscreen-btn');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    const elem = document.documentElement;
+    if (!document.fullscreenElement) {
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch(() => {});
+      }
+    } else if (document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    }
+  });
 }
 
 // Initialize game after successful authentication
@@ -108,6 +124,9 @@ async function initializeGame() {
         }
         if (Array.isArray(profileData.titles)) {
           userData.titles = profileData.titles;
+        }
+        if (Array.isArray(profileData.achievements)) {
+          userData.achievements = profileData.achievements.map(a => a.achievementId);
         }
         
         // Ensure id exists

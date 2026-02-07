@@ -6,17 +6,20 @@ class TouchControls {
       this.container = this.createContainer();
     }
 
-    this.activePointers = {
-      left: new Set(),
-      right: new Set(),
-      up: new Set(),
-      down: new Set()
+    this.state = {
+      left: false,
+      right: false,
+      up: false,
+      down: false,
+      axisX: 0,
+      axisY: 0,
+      active: false
     };
-
-    this.state = { left: false, right: false, up: false, down: false };
-
-    this.buttons = Array.from(this.container.querySelectorAll('.touch-btn'));
-    this.buttons.forEach((btn) => this.bindButton(btn));
+    this.joystick = null;
+    this.handle = null;
+    this.activePointerId = null;
+    this.origin = { x: 0, y: 0 };
+    this.radius = 50;
 
     this.coarseMedia = window.matchMedia('(pointer: coarse)');
     this.evaluateVisibility();
@@ -31,6 +34,8 @@ class TouchControls {
         this.reset();
       }
     });
+
+    this.bindFloatingJoystick();
   }
 
   createContainer() {
@@ -38,14 +43,6 @@ class TouchControls {
     wrapper.id = 'touch-controls';
     wrapper.className = 'touch-controls';
     wrapper.setAttribute('aria-hidden', 'true');
-    wrapper.innerHTML = `
-      <div class="touch-dpad">
-        <button class="touch-btn touch-up" data-dir="up" aria-label="Move up">▲</button>
-        <button class="touch-btn touch-left" data-dir="left" aria-label="Move left">◀</button>
-        <button class="touch-btn touch-right" data-dir="right" aria-label="Move right">▶</button>
-        <button class="touch-btn touch-down" data-dir="down" aria-label="Move down">▼</button>
-      </div>
-    `;
     document.body.appendChild(wrapper);
     return wrapper;
   }
@@ -67,52 +64,80 @@ class TouchControls {
     this.setVisible(shouldShow);
   }
 
-  bindButton(btn) {
-    const dir = btn.getAttribute('data-dir');
-    if (!dir || !this.activePointers[dir]) return;
+  bindFloatingJoystick() {
+    const onPointerDown = (e) => {
+      if (this.activePointerId !== null) return;
+      if (!this.container.classList.contains('active')) return;
+      this.activePointerId = e.pointerId;
+      this.state.active = true;
 
-    const onDown = (e) => {
-      e.preventDefault();
-      this.activePointers[dir].add(e.pointerId);
-      btn.classList.add('active');
-      this.refreshState(dir);
+      this.joystick = document.createElement('div');
+      this.joystick.className = 'touch-joystick';
+      this.handle = document.createElement('div');
+      this.handle.className = 'touch-joystick-handle';
+      this.joystick.appendChild(this.handle);
+      this.container.appendChild(this.joystick);
+
+      this.origin = { x: e.clientX, y: e.clientY };
+      this.joystick.style.left = `${this.origin.x - 60}px`;
+      this.joystick.style.top = `${this.origin.y - 60}px`;
+      this.radius = 50;
+      this.updateAxis(0, 0);
     };
 
-    const onUp = (e) => {
-      e.preventDefault();
-      this.activePointers[dir].delete(e.pointerId);
-      if (this.activePointers[dir].size === 0) {
-        btn.classList.remove('active');
+    const onPointerMove = (e) => {
+      if (this.activePointerId !== e.pointerId) return;
+      const dx = e.clientX - this.origin.x;
+      const dy = e.clientY - this.origin.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      const clamped = Math.min(dist, this.radius);
+      const nx = (dx / dist) * (clamped / this.radius);
+      const ny = (dy / dist) * (clamped / this.radius);
+      this.updateAxis(nx, ny);
+      if (this.handle) {
+        this.handle.style.transform = `translate(${nx * this.radius}px, ${ny * this.radius}px) translate(-50%, -50%)`;
       }
-      this.refreshState(dir);
     };
 
-    btn.addEventListener('pointerdown', onDown);
-    btn.addEventListener('pointerup', onUp);
-    btn.addEventListener('pointercancel', onUp);
-    btn.addEventListener('pointerleave', onUp);
+    const onPointerUp = (e) => {
+      if (this.activePointerId !== e.pointerId) return;
+      this.activePointerId = null;
+      this.state.active = false;
+      this.updateAxis(0, 0);
+      if (this.joystick) {
+        this.container.removeChild(this.joystick);
+        this.joystick = null;
+        this.handle = null;
+      }
+    };
+
+    window.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
   }
 
-  refreshState(dir) {
-    if (dir) {
-      this.state[dir] = this.activePointers[dir].size > 0;
-      return;
-    }
-
-    this.state.left = this.activePointers.left.size > 0;
-    this.state.right = this.activePointers.right.size > 0;
-    this.state.up = this.activePointers.up.size > 0;
-    this.state.down = this.activePointers.down.size > 0;
+  updateAxis(nx, ny) {
+    this.state.axisX = nx;
+    this.state.axisY = ny;
+    this.state.left = nx < -0.1;
+    this.state.right = nx > 0.1;
+    this.state.up = ny < -0.1;
+    this.state.down = ny > 0.1;
   }
 
   reset() {
-    Object.keys(this.activePointers).forEach((dir) => {
-      this.activePointers[dir].clear();
-    });
     this.state.left = false;
     this.state.right = false;
     this.state.up = false;
     this.state.down = false;
-    this.buttons.forEach((btn) => btn.classList.remove('active'));
+    this.state.axisX = 0;
+    this.state.axisY = 0;
+    this.state.active = false;
+    if (this.joystick && this.container) {
+      this.container.removeChild(this.joystick);
+      this.joystick = null;
+      this.handle = null;
+    }
   }
 }

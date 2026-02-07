@@ -91,6 +91,9 @@ class LibraryScene extends Phaser.Scene {
     
     // Other players map
     this.otherPlayers = new Map();
+
+    // Player interaction popup
+    this.createPlayerPopup();
     
     // Register socket listeners
     socketManager.registerSceneListeners(this);
@@ -157,6 +160,49 @@ class LibraryScene extends Phaser.Scene {
     this.otherPlayers.forEach(otherPlayer => {
       otherPlayer.update();
     });
+  }
+
+  createPlayerPopup() {
+    const width = this.cameras.main.width;
+    this.playerPopup = this.add.container(width / 2, 120);
+    this.playerPopup.setDepth(30);
+    const bg = this.add.rectangle(0, 0, 220, 90, 0x000000, 0.75);
+    bg.setStrokeStyle(2, 0xffffff, 0.2);
+    this.playerPopupName = this.add.text(0, -20, 'Player', {
+      fontSize: '14px',
+      fill: '#ffffff'
+    }).setOrigin(0.5);
+    const msgBtn = this.add.rectangle(0, 20, 120, 30, 0x667eea);
+    msgBtn.setInteractive({ useHandCursor: true });
+    const msgText = this.add.text(0, 20, 'Message', {
+      fontSize: '14px',
+      fill: '#ffffff'
+    }).setOrigin(0.5);
+    const closeBtn = this.add.rectangle(90, -30, 20, 20, 0xff4444);
+    closeBtn.setInteractive({ useHandCursor: true });
+    const closeText = this.add.text(90, -30, 'X', {
+      fontSize: '10px',
+      fill: '#ffffff'
+    }).setOrigin(0.5);
+
+    msgBtn.on('pointerdown', () => {
+      if (window.chatBox && window.chatBox.input && this.playerPopupUser) {
+        window.chatBox.input.value = `/pm ${this.playerPopupUser} `;
+        window.chatBox.input.focus();
+      }
+      this.playerPopup.setVisible(false);
+    });
+    closeBtn.on('pointerdown', () => this.playerPopup.setVisible(false));
+
+    this.playerPopup.add([bg, this.playerPopupName, msgBtn, msgText, closeBtn, closeText]);
+    this.playerPopup.setVisible(false);
+  }
+
+  onOtherPlayerClicked(otherPlayer) {
+    if (!otherPlayer || !otherPlayer.username) return;
+    this.playerPopupUser = otherPlayer.username;
+    this.playerPopupName.setText(otherPlayer.username);
+    this.playerPopup.setVisible(true);
   }
   
   showTopics() {

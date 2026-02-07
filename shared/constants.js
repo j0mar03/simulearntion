@@ -314,29 +314,50 @@ const GAME_CONFIG = {
   MAX_PLAYERS_PER_ROOM: 20
 };
 
-const DEFAULT_PLAYER_TITLE = 'Rookie';
+const DEFAULT_PLAYER_TITLE = 'The Trailblazer';
 
 const ACHIEVEMENTS = {
-  // Topic Mastery
-  'kinematics_master': { name: 'Kinematics Master', icon: '🎯', desc: 'Study Kinematics', title: 'Kinematics Master' },
-  'dynamics_master': { name: 'Dynamics Master', icon: '⚡', desc: 'Study Dynamics', title: 'Dynamics Master' },
-  'energy_master': { name: 'Energy Master', icon: '💫', desc: 'Study Work & Energy', title: 'Energy Sage' },
-  
-  // Quiz Performance
-  'first_quiz': { name: 'Quiz Rookie', icon: '📝', desc: 'Complete first quiz', title: 'Quiz Rookie' },
-  'quiz_ace': { name: 'Quiz Ace', icon: '🌟', desc: 'Score 80%+ on quiz', title: 'Quiz Ace' },
-  'perfect_score': { name: 'Perfect Score', icon: '👑', desc: 'Score 100% on quiz', title: 'Crowned Scholar' },
-  'quiz_master': { name: 'Quiz Master', icon: '🏆', desc: 'Complete 10 quizzes', title: 'Quiz Master' },
-  
-  // Streaks
-  'streak_3': { name: '3-Day Streak', icon: '🔥', desc: '3 days in a row', title: 'Streak Starter' },
-  'streak_7': { name: '1-Week Streak', icon: '🔥🔥', desc: '7 days in a row', title: 'Week Warrior' },
-  'streak_30': { name: '1-Month Streak', icon: '🔥🔥🔥', desc: '30 days in a row', title: 'Consistency Legend' },
-  
-  // Engagement
-  'customizer': { name: 'Customizer', icon: '🎨', desc: 'Customize avatar', title: 'Style Crafter' },
-  'explorer': { name: 'Explorer', icon: '🗺️', desc: 'Visit all areas', title: 'World Explorer' },
-  'dedicated_learner': { name: 'Dedicated Learner', icon: '📚', desc: '1 hour playtime', title: 'Dedicated Learner' }
+  'freshman': {
+    name: 'Freshman',
+    icon: 'ach-freshman',
+    desc: 'Reach Erudition Level 5',
+    title: 'Freshman',
+    unlocks: 'u2'
+  },
+  'engaged_rookie': {
+    name: 'Engaged Rookie',
+    icon: 'ach-engaged-rookie',
+    desc: 'Reach Erudition Level 10',
+    title: 'Engaged Rookie',
+    unlocks: 'cape'
+  },
+  'seasoned_learner': {
+    name: 'Seasoned Learner',
+    icon: 'ach-seasoned-learner',
+    desc: 'Reach Erudition Level 15',
+    title: 'Seasoned Learner',
+    unlocks: 'scarf'
+  },
+  'physicist': {
+    name: 'Physicist',
+    icon: 'ach-physicist',
+    desc: 'Score 90%+ on a Physics quiz',
+    title: 'Physicist',
+    unlocks: 'halo'
+  },
+  'an_enthusiast': {
+    name: 'An Enthusiast!',
+    icon: 'ach-an-enthusiast',
+    desc: 'Play for at least 3 days',
+    title: 'An Enthusiast!',
+    unlocks: 'sun'
+  },
+  'trailblazer': {
+    name: 'The Trailblazer',
+    icon: 'ach-trailblazer',
+    desc: 'Achievement gained for participating in prototype testing!',
+    title: 'The Trailblazer'
+  }
 };
 
 // Export for both Node.js (server) and browser (client)

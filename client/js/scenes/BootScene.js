@@ -71,6 +71,13 @@ class BootScene extends Phaser.Scene {
     // --- UI BUTTONS ---
     this.load.image('back-btn', '/assets/images/back button.png');
     this.load.image('exit-btn', '/assets/images/exit button.png');
+    this.load.image('achievement-locked', '/assets/achievement ui/achievements_icon.png');
+    this.load.image('ach-freshman', '/assets/achievement ui/freshman.png');
+    this.load.image('ach-engaged-rookie', '/assets/achievement ui/engaged_rookie.png');
+    this.load.image('ach-seasoned-learner', '/assets/achievement ui/seasoned_learner.png');
+    this.load.image('ach-physicist', '/assets/achievement ui/physicist.png');
+    this.load.image('ach-an-enthusiast', '/assets/achievement ui/an_enthusiast.png');
+    this.load.image('ach-trailblazer', '/assets/achievement ui/the_trailblazer.png');
     
     // --- LOBBY UI ---
     this.load.image('profile-ui', '/assets/ui/lobby/profile ui.png');

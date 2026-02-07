@@ -2,102 +2,40 @@
 // Ported from main.py AchievementSystem class
 
 const achievements = {
-  // Topic Mastery Badges
-  kinematics_master: {
-    name: 'Kinematics Master',
-    description: 'Study Kinematics topic',
-    icon: '🎯',
-    type: 'topic',
-    unlocks: 'halo'
-  },
-  dynamics_master: {
-    name: 'Dynamics Master',
-    description: 'Study Dynamics topic',
-    icon: '⚡',
-    type: 'topic',
-    unlocks: 'sun'
-  },
-  energy_master: {
-    name: 'Energy Master',
-    description: 'Study Work & Energy topic',
-    icon: '💫',
-    type: 'topic',
-    unlocks: null
-  },
-  
-  // Quiz Performance Badges
-  first_quiz: {
-    name: 'Quiz Rookie',
-    description: 'Complete your first quiz',
-    icon: '📝',
-    type: 'quiz',
-    unlocks: null
-  },
-  quiz_ace: {
-    name: 'Quiz Ace',
-    description: 'Score 80% or higher on any quiz',
-    icon: '🌟',
-    type: 'quiz',
-    unlocks: 'scarf'
-  },
-  perfect_score: {
-    name: 'Perfect Score',
-    description: 'Score 100% on a quiz',
-    icon: '👑',
-    type: 'quiz',
+  freshman: {
+    name: 'Freshman',
+    description: 'Reach Erudition Level 5',
+    type: 'erudition',
     unlocks: 'u2'
   },
-  quiz_master: {
-    name: 'Quiz Master',
-    description: 'Complete 10 quizzes',
-    icon: '🏆',
-    type: 'quiz',
+  engaged_rookie: {
+    name: 'Engaged Rookie',
+    description: 'Reach Erudition Level 10',
+    type: 'erudition',
     unlocks: 'cape'
   },
-  
-  // Streak Badges
-  streak_3: {
-    name: '3-Day Streak',
-    description: 'Study for 3 days in a row',
-    icon: '🔥',
-    type: 'streak',
-    unlocks: null
+  seasoned_learner: {
+    name: 'Seasoned Learner',
+    description: 'Reach Erudition Level 15',
+    type: 'erudition',
+    unlocks: 'scarf'
   },
-  streak_7: {
-    name: '1-Week Streak',
-    description: 'Study for 7 days in a row',
-    icon: '🔥🔥',
-    type: 'streak',
-    unlocks: null
-  },
-  streak_30: {
-    name: '1-Month Streak',
-    description: 'Study for 30 days in a row',
-    icon: '🔥🔥🔥',
-    type: 'streak',
+  physicist: {
+    name: 'Physicist',
+    description: 'Score 90%+ on a Physics quiz',
+    type: 'quiz',
     unlocks: 'halo'
   },
-  
-  // Engagement Badges
-  customizer: {
-    name: 'Customizer',
-    description: 'Customize your avatar',
-    icon: '🎨',
-    type: 'engagement',
-    unlocks: null
+  an_enthusiast: {
+    name: 'An Enthusiast!',
+    description: 'Play for at least 3 days',
+    type: 'days',
+    unlocks: 'sun'
   },
-  explorer: {
-    name: 'Explorer',
-    description: 'Visit all areas of the game',
-    icon: '🗺️',
-    type: 'engagement',
-    unlocks: null
-  },
-  dedicated_learner: {
-    name: 'Dedicated Learner',
-    description: 'Spend 1 hour total in game',
-    icon: '📚',
-    type: 'engagement',
+  trailblazer: {
+    name: 'The Trailblazer',
+    description: 'Participated in prototype testing',
+    type: 'tutorial',
     unlocks: null
   }
 };
@@ -144,23 +82,23 @@ class AchievementManager {
       }
     });
     
-    // Check topic achievements
-    if (achievement.type === 'topic') {
-      const topicsStudiedList = user.topicsStudied.map(t => t.topic);
-      
-      if (achievementId === 'kinematics_master') {
-        earned = topicsStudiedList.includes('Kinematics');
-      } else if (achievementId === 'dynamics_master') {
-        earned = topicsStudiedList.includes('Dynamics');
-      } else if (achievementId === 'energy_master') {
-        earned = topicsStudiedList.includes('Work & Energy');
+    // Check erudition achievements (based on total correct answers)
+    if (achievement.type === 'erudition') {
+      const totalCorrect = user.sessions.reduce((sum, session) => {
+        return sum + session.quizAttempts.filter(q => q.isCorrect).length;
+      }, 0);
+      const eruditionLevel = Math.floor(totalCorrect / 5);
+      if (achievementId === 'freshman') {
+        earned = eruditionLevel >= 5;
+      } else if (achievementId === 'engaged_rookie') {
+        earned = eruditionLevel >= 10;
+      } else if (achievementId === 'seasoned_learner') {
+        earned = eruditionLevel >= 15;
       }
     }
     
     // Check quiz achievements
     else if (achievement.type === 'quiz') {
-      const quizCount = user.sessions.length;
-      
       // Calculate best score (by session)
       let bestScore = 0;
       for (const session of user.sessions) {
@@ -172,47 +110,27 @@ class AchievementManager {
         }
       }
       
-      if (achievementId === 'first_quiz') {
-        earned = quizCount >= 1;
-      } else if (achievementId === 'quiz_ace') {
-        earned = bestScore >= 80;
-      } else if (achievementId === 'perfect_score') {
-        earned = bestScore >= 100;
-      } else if (achievementId === 'quiz_master') {
-        earned = quizCount >= 10;
+      if (achievementId === 'physicist') {
+        earned = bestScore >= 90;
       }
     }
     
-    // Check streak achievements
-    else if (achievement.type === 'streak') {
-      const currentStreak = user.currentStreak;
-      
-      if (achievementId === 'streak_3') {
-        earned = currentStreak >= 3;
-      } else if (achievementId === 'streak_7') {
-        earned = currentStreak >= 7;
-      } else if (achievementId === 'streak_30') {
-        earned = currentStreak >= 30;
+    // Check days played achievements
+    else if (achievement.type === 'days') {
+      const uniqueDays = new Set();
+      for (const session of user.sessions) {
+        const date = new Date(session.startTime);
+        const key = `${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()}`;
+        uniqueDays.add(key);
+      }
+      if (achievementId === 'an_enthusiast') {
+        earned = uniqueDays.size >= 3;
       }
     }
     
-    // Check engagement achievements
-    else if (achievement.type === 'engagement') {
-      if (achievementId === 'customizer') {
-        // Check if avatar is different from default
-        const avatarConfig = user.avatarConfig;
-        earned = avatarConfig.body !== 'u1' || avatarConfig.head !== 'none';
-      } else if (achievementId === 'explorer') {
-        // Check if visited all main areas (3+)
-        const statesVisited = new Set();
-        for (const session of user.sessions) {
-          const timePerState = session.timePerState;
-          Object.keys(timePerState).forEach(state => statesVisited.add(state));
-        }
-        earned = statesVisited.size >= 3;
-      } else if (achievementId === 'dedicated_learner') {
-        earned = user.totalPlaytime >= 3600; // 1 hour
-      }
+    // Tutorial achievements are awarded manually
+    else if (achievement.type === 'tutorial') {
+      earned = false;
     }
     
     return earned;

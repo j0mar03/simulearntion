@@ -31,6 +31,14 @@ class OtherPlayer {
     this.sprite.setFrame(0); // Set to first frame
     this.currentAnimation = null;
     this.loadingAnimation = false;
+
+    // Click to interact
+    this.sprite.setInteractive({ useHandCursor: true });
+    this.sprite.on('pointerdown', () => {
+      if (scene && scene.onOtherPlayerClicked) {
+        scene.onOtherPlayerClicked(this);
+      }
+    });
     
     // Update texture to correct one once it's available
     if (textureKey !== this.animKey && scene.textures.exists(this.animKey)) {
@@ -181,6 +189,14 @@ class OtherPlayer {
       this.sprite.setVisible(true); // Ensure sprite is visible
       this.sprite.setActive(true); // Ensure sprite is active
       this.sprite.setFrame(0); // Set to first frame
+
+      // Re-attach click handler after avatar update
+      this.sprite.setInteractive({ useHandCursor: true });
+      this.sprite.on('pointerdown', () => {
+        if (this.scene && this.scene.onOtherPlayerClicked) {
+          this.scene.onOtherPlayerClicked(this);
+        }
+      });
       
       // Ensure physics body exists if needed
       if (!this.sprite.body) {

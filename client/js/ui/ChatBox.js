@@ -5,11 +5,48 @@ class ChatBox {
     this.messagesDiv = document.getElementById('chat-messages');
     this.input = document.getElementById('chat-input');
     this.replyIndicator = document.getElementById('chat-reply-indicator');
+    this.closeBtn = document.getElementById('chat-close');
+    this.toggleBtn = document.getElementById('chat-toggle');
+    this.emojiBtn = document.getElementById('chat-emoji-btn');
+    this.emojiPicker = document.getElementById('emoji-picker');
     this.maxMessages = 50;
     this.eventListenersSetup = false;
     this.replyTo = null;
+    this.isVisible = true;
     
+    this.emojiMap = {
+      ':smile:': '😄',
+      ':laugh:': '😂',
+      ':joy:': '😂',
+      ':heart:': '❤️',
+      ':thumbsup:': '👍',
+      ':ok:': '👌',
+      ':clap:': '👏',
+      ':fire:': '🔥',
+      ':star:': '⭐',
+      ':sad:': '😢',
+      ':cry:': '😭',
+      ':angry:': '😠',
+      ':cool:': '😎',
+      ':wink:': '😉',
+      ':love:': '😍'
+    };
+
+    this.profanityList = [
+      'fuck',
+      'shit',
+      'bitch',
+      'asshole',
+      'bastard',
+      'dick',
+      'piss',
+      'cunt',
+      'slut',
+      'whore'
+    ];
+
     this.setupEventListeners();
+    this.buildEmojiPicker();
   }
   
   setupEventListeners() {
@@ -21,7 +58,8 @@ class ChatBox {
     // Send message on Enter
     this.inputKeydownHandler = (e) => {
       if (e.key === 'Enter' && this.input.value.trim()) {
-        const message = this.input.value.trim();
+        let message = this.replaceEmojiShortcodes(this.input.value.trim());
+        message = this.maskProfanity(message);
         
         // Private message command: /pm username message OR /w username message
         const pmMatch = message.match(/^\/(pm|w)\s+(\S+)\s+(.+)$/i);
@@ -49,6 +87,11 @@ class ChatBox {
       }
     };
     this.input.addEventListener('keydown', this.inputKeydownHandler);
+
+    this.inputInputHandler = () => {
+      this.input.value = this.replaceEmojiShortcodes(this.input.value);
+    };
+    this.input.addEventListener('input', this.inputInputHandler);
     
     // Disable Phaser keyboard capture while typing to allow spaces
     this.inputFocusHandler = () => {
@@ -75,12 +118,28 @@ class ChatBox {
     
     this.input.addEventListener('focus', this.inputFocusHandler);
     this.input.addEventListener('blur', this.inputBlurHandler);
+
+    if (this.closeBtn) {
+      this.closeBtn.addEventListener('click', () => this.hide());
+    }
+    if (this.toggleBtn) {
+      this.toggleBtn.addEventListener('click', () => this.show());
+    }
+    if (this.emojiBtn && this.emojiPicker) {
+      this.emojiBtn.addEventListener('click', () => {
+        const showing = this.emojiPicker.style.display === 'grid';
+        this.emojiPicker.style.display = showing ? 'none' : 'grid';
+      });
+    }
     
     // Focus on chat when pressing T or /
     this.documentKeydownHandler = (e) => {
       if ((e.key === 't' || e.key === 'T' || e.key === '/') && 
           document.activeElement !== this.input) {
         e.preventDefault();
+        if (!this.isVisible) {
+          this.show();
+        }
         this.input.focus();
       }
       
@@ -107,6 +166,9 @@ class ChatBox {
     }
     if (this.documentKeydownHandler) {
       document.removeEventListener('keydown', this.documentKeydownHandler);
+    }
+    if (this.inputInputHandler) {
+      this.input.removeEventListener('input', this.inputInputHandler);
     }
     this.eventListenersSetup = false;
   }
@@ -150,7 +212,7 @@ class ChatBox {
     }
     
     const messageSpan = document.createElement('span');
-    messageSpan.textContent = data.message;
+    messageSpan.textContent = this.maskProfanity(data.message || '');
     
     if (data.private) {
       messageDiv.classList.add('private-message');
@@ -199,9 +261,49 @@ class ChatBox {
   
   show() {
     this.container.style.display = 'block';
+    if (this.toggleBtn) this.toggleBtn.style.display = 'none';
+    this.isVisible = true;
+    if (this.emojiPicker) this.emojiPicker.style.display = 'none';
   }
   
   hide() {
     this.container.style.display = 'none';
+    if (this.toggleBtn) this.toggleBtn.style.display = 'block';
+    this.isVisible = false;
+    if (this.emojiPicker) this.emojiPicker.style.display = 'none';
+  }
+
+  replaceEmojiShortcodes(text) {
+    let result = text;
+    Object.entries(this.emojiMap).forEach(([code, emoji]) => {
+      result = result.split(code).join(emoji);
+    });
+    return result;
+  }
+
+  maskProfanity(text) {
+    let result = String(text || '');
+    this.profanityList.forEach((word) => {
+      const pattern = new RegExp(`\\b${word}\\b`, 'gi');
+      result = result.replace(pattern, '***');
+    });
+    return result;
+  }
+
+  buildEmojiPicker() {
+    if (!this.emojiPicker) return;
+    this.emojiPicker.innerHTML = '';
+    const emojis = Object.values(this.emojiMap);
+    emojis.forEach((emoji) => {
+      const btn = document.createElement('button');
+      btn.className = 'emoji-btn';
+      btn.type = 'button';
+      btn.textContent = emoji;
+      btn.addEventListener('click', () => {
+        this.input.value += emoji;
+        this.input.focus();
+      });
+      this.emojiPicker.appendChild(btn);
+    });
   }
 }

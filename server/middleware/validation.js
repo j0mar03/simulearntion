@@ -66,6 +66,10 @@ const schemas = {
       isCorrect: Joi.boolean().required(),
       topic: Joi.string().required()
     })).min(1).required()
+  }),
+
+  awardAchievement: Joi.object({
+    achievementId: Joi.string().required()
   })
 };
 

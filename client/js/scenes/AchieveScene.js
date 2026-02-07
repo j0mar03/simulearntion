@@ -98,10 +98,9 @@ class AchieveScene extends Phaser.Scene {
         earned ? 0x90ee90 : 0xcccccc);
       
       // Icon
-      const icon = this.add.text(xOffset + 30, yOffset, 
-        earned ? achievement.icon : '🔒', {
-        fontSize: '24px'
-      }).setOrigin(0.5);
+      const iconKey = earned ? achievement.icon : 'achievement-locked';
+      const icon = this.add.image(xOffset + 30, yOffset, iconKey);
+      icon.setScale(0.35);
       
       // Name
       const name = this.add.text(xOffset + 70, yOffset - 15, achievement.name, {

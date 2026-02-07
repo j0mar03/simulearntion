@@ -14,6 +14,7 @@ const profileRoutes = require('./routes/profile');
 const analyticsRoutes = require('./routes/analytics');
 const leaderboardRoutes = require('./routes/leaderboard');
 const quizRoutes = require('./routes/quiz');
+const achievementRoutes = require('./routes/achievements');
 
 // Import socket handler
 const initializeSocketHandler = require('./socket-handler');
@@ -71,6 +72,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/quiz', quizRoutes);
+app.use('/api/achievements', achievementRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
