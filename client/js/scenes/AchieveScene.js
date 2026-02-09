@@ -114,7 +114,7 @@ class AchieveScene extends Phaser.Scene {
       const earned = this.isAdmin || this.earnedAchievements.includes(id);
       
       // Achievement box
-      const box = this.add.rectangle(xOffset + 150, yOffset, 280, 70,
+      const box = this.add.rectangle(xOffset + 150, yOffset, 280, 80,
         earned ? 0x90ee90 : 0xcccccc);
       
       // Icon
@@ -129,16 +129,18 @@ class AchieveScene extends Phaser.Scene {
       }
       
       // Name
-      const name = this.add.text(xOffset + 70, yOffset - 15, achievement.name, {
+      const name = this.add.text(xOffset + 70, yOffset - 18, achievement.name, {
         fontSize: '16px',
         fill: earned ? '#000000' : '#666666',
-        fontStyle: earned ? 'bold' : 'normal'
+        fontStyle: earned ? 'bold' : 'normal',
+        wordWrap: { width: 190 }
       });
       
       // Description
-      const desc = this.add.text(xOffset + 70, yOffset + 10, achievement.desc, {
-        fontSize: '12px',
-        fill: earned ? '#333333' : '#888888'
+      const desc = this.add.text(xOffset + 70, yOffset + 12, achievement.desc, {
+        fontSize: '11px',
+        fill: earned ? '#333333' : '#888888',
+        wordWrap: { width: 190 }
       });
 
       if (earned && achievement.title) {

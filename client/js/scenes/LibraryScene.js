@@ -19,6 +19,16 @@ class LibraryScene extends Phaser.Scene {
       backgroundColor: 'rgba(0, 0, 0, 0.6)',
       padding: { x: 10, y: 5 }
     }).setOrigin(0.5).setDepth(10);
+
+    // Leaderboard button (top-left)
+    const leaderboardBtn = this.add.rectangle(90, 40, 120, 34, 0x6b21a8);
+    leaderboardBtn.setInteractive({ useHandCursor: true });
+    this.add.text(90, 40, 'Leaderboard', {
+      fontSize: '14px',
+      fill: '#ffffff'
+    }).setOrigin(0.5).setDepth(11);
+    leaderboardBtn.setDepth(10);
+    leaderboardBtn.on('pointerdown', () => this.toggleLeaderboardPanel());
     
     // Exit door (bottom left) - semi-transparent overlay
     const exitDoor = this.add.rectangle(100, 550, 150, 75, 0x00aa00, 0.3);
@@ -61,6 +71,15 @@ class LibraryScene extends Phaser.Scene {
       backgroundColor: '#ffffff',
       padding: { x: 10, y: 5 }
     }).setOrigin(0.5);
+
+    // Leaderboard panel
+    this.createLeaderboardPanel();
+    this.leaderboardPanel.setVisible(false);
+    this.leaderboardTimer = this.time.addEvent({
+      delay: 60000,
+      loop: true,
+      callback: () => this.refreshLeaderboard()
+    });
 
     // Ms. Parro NPC (lecturer)
     this.parro = this.add.image(150, 220, 'paru-avatar').setScale(0.12);
@@ -203,6 +222,98 @@ class LibraryScene extends Phaser.Scene {
     this.playerPopupUser = otherPlayer.username;
     this.playerPopupName.setText(otherPlayer.username);
     this.playerPopup.setVisible(true);
+  }
+
+  createLeaderboardPanel() {
+    const panelX = 170;
+    const panelY = 140;
+    this.leaderboardPanel = this.add.container(panelX, panelY);
+    this.leaderboardPanel.setDepth(15);
+
+    const bg = this.add.rectangle(0, 0, 300, 260, 0x000000, 0.65);
+    bg.setStrokeStyle(2, 0xffffff, 0.15);
+    const title = this.add.text(0, -110, 'Global Achievements', {
+      fontSize: '16px',
+      fill: '#ffffff',
+      fontStyle: 'bold'
+    }).setOrigin(0.5);
+    const subtitle = this.add.text(0, -90, 'All-time', {
+      fontSize: '12px',
+      fill: '#cbd5e1'
+    }).setOrigin(0.5);
+
+    const closeBtn = this.add.rectangle(130, -120, 22, 22, 0xff4444);
+    closeBtn.setInteractive({ useHandCursor: true });
+    const closeText = this.add.text(130, -120, 'X', {
+      fontSize: '11px',
+      fill: '#ffffff'
+    }).setOrigin(0.5);
+    closeBtn.on('pointerdown', () => this.leaderboardPanel.setVisible(false));
+
+    this.leaderboardStatusText = this.add.text(0, -60, 'Loading...', {
+      fontSize: '12px',
+      fill: '#f8fafc'
+    }).setOrigin(0.5);
+
+    this.leaderboardEntryTexts = [];
+    for (let i = 0; i < 8; i++) {
+      const y = -35 + i * 24;
+      const entry = this.add.text(-130, y, '', {
+        fontSize: '12px',
+        fill: '#ffffff'
+      }).setOrigin(0, 0.5);
+      this.leaderboardEntryTexts.push(entry);
+    }
+
+    this.leaderboardPanel.add([
+      bg,
+      title,
+      subtitle,
+      closeBtn,
+      closeText,
+      this.leaderboardStatusText,
+      ...this.leaderboardEntryTexts
+    ]);
+  }
+
+  toggleLeaderboardPanel() {
+    if (!this.leaderboardPanel) return;
+    const nextVisible = !this.leaderboardPanel.visible;
+    this.leaderboardPanel.setVisible(nextVisible);
+    if (nextVisible) {
+      this.refreshLeaderboard();
+    }
+  }
+
+  async refreshLeaderboard() {
+    if (!this.leaderboardStatusText || !this.leaderboardEntryTexts) return;
+    this.leaderboardStatusText.setText('Loading...');
+    this.leaderboardEntryTexts.forEach(t => t.setText(''));
+    try {
+      const response = await fetch('/api/leaderboard/achievements?limit=8');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const data = await response.json();
+      const rows = Array.isArray(data.leaderboard) ? data.leaderboard : [];
+      if (rows.length === 0) {
+        this.leaderboardStatusText.setText('No data yet.');
+        return;
+      }
+      this.leaderboardStatusText.setText('');
+      rows.slice(0, 8).forEach((row, index) => {
+        const rank = index + 1;
+        const name = row.username || 'Unknown';
+        const count = row.achievementCount || 0;
+        const line = `${rank}. ${name} - ${count}`;
+        if (this.leaderboardEntryTexts[index]) {
+          this.leaderboardEntryTexts[index].setText(line);
+        }
+      });
+    } catch (error) {
+      console.warn('Failed to load leaderboard:', error);
+      this.leaderboardStatusText.setText('Leaderboard unavailable');
+    }
   }
   
   showTopics() {
@@ -523,6 +634,11 @@ class LibraryScene extends Phaser.Scene {
     }
     this.otherPlayers.forEach(p => p.destroy());
     this.otherPlayers.clear();
+
+    if (this.leaderboardTimer) {
+      this.leaderboardTimer.remove(false);
+      this.leaderboardTimer = null;
+    }
     
     socketManager.removeSceneListeners();
   }

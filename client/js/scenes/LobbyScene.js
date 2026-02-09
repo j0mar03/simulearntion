@@ -29,6 +29,16 @@ class LobbyScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(11);
     profileBtn.setDepth(10);
     profileBtn.on('pointerdown', () => this.toggleProfilePanel());
+
+    // Leaderboard button (next to profile)
+    const leaderboardBtn = this.add.rectangle(190, 40, 120, 34, 0x6b21a8);
+    leaderboardBtn.setInteractive({ useHandCursor: true });
+    this.add.text(190, 40, 'Leaderboard', {
+      fontSize: '14px',
+      fill: '#ffffff'
+    }).setOrigin(0.5).setDepth(11);
+    leaderboardBtn.setDepth(10);
+    leaderboardBtn.on('pointerdown', () => this.toggleLeaderboardPanel());
     
     // Library door (top right) - using real position from original game
     const libraryDoorHitbox = this.add.rectangle(700, 100, 100, 100, 0x8B4513, 0);
@@ -177,6 +187,15 @@ class LobbyScene extends Phaser.Scene {
       backgroundColor: '#000000',
       padding: { x: 10, y: 5 }
     }).setOrigin(0.5);
+
+    // Leaderboard panel
+    this.createLeaderboardPanel();
+    this.leaderboardPanel.setVisible(false);
+    this.leaderboardTimer = this.time.addEvent({
+      delay: 60000,
+      loop: true,
+      callback: () => this.refreshLeaderboard()
+    });
 
     // Profile panel (hidden by default)
     this.createProfilePanel();
@@ -566,6 +585,99 @@ class LobbyScene extends Phaser.Scene {
       this.updateProfilePanel();
     }
   }
+
+  createLeaderboardPanel() {
+    const width = this.cameras.main.width;
+    const panelX = width - 170;
+    const panelY = 160;
+    this.leaderboardPanel = this.add.container(panelX, panelY);
+    this.leaderboardPanel.setDepth(15);
+
+    const bg = this.add.rectangle(0, 0, 300, 260, 0x000000, 0.65);
+    bg.setStrokeStyle(2, 0xffffff, 0.15);
+    const title = this.add.text(0, -110, 'Global Achievements', {
+      fontSize: '16px',
+      fill: '#ffffff',
+      fontStyle: 'bold'
+    }).setOrigin(0.5);
+    const subtitle = this.add.text(0, -90, 'All-time', {
+      fontSize: '12px',
+      fill: '#cbd5e1'
+    }).setOrigin(0.5);
+
+    const closeBtn = this.add.rectangle(130, -120, 22, 22, 0xff4444);
+    closeBtn.setInteractive({ useHandCursor: true });
+    const closeText = this.add.text(130, -120, 'X', {
+      fontSize: '11px',
+      fill: '#ffffff'
+    }).setOrigin(0.5);
+    closeBtn.on('pointerdown', () => this.leaderboardPanel.setVisible(false));
+
+    this.leaderboardStatusText = this.add.text(0, -60, 'Loading...', {
+      fontSize: '12px',
+      fill: '#f8fafc'
+    }).setOrigin(0.5);
+
+    this.leaderboardEntryTexts = [];
+    for (let i = 0; i < 8; i++) {
+      const y = -35 + i * 24;
+      const entry = this.add.text(-130, y, '', {
+        fontSize: '12px',
+        fill: '#ffffff'
+      }).setOrigin(0, 0.5);
+      this.leaderboardEntryTexts.push(entry);
+    }
+
+    this.leaderboardPanel.add([
+      bg,
+      title,
+      subtitle,
+      closeBtn,
+      closeText,
+      this.leaderboardStatusText,
+      ...this.leaderboardEntryTexts
+    ]);
+  }
+
+  toggleLeaderboardPanel() {
+    if (!this.leaderboardPanel) return;
+    const nextVisible = !this.leaderboardPanel.visible;
+    this.leaderboardPanel.setVisible(nextVisible);
+    if (nextVisible) {
+      this.refreshLeaderboard();
+    }
+  }
+
+  async refreshLeaderboard() {
+    if (!this.leaderboardStatusText || !this.leaderboardEntryTexts) return;
+    this.leaderboardStatusText.setText('Loading...');
+    this.leaderboardEntryTexts.forEach(t => t.setText(''));
+    try {
+      const response = await fetch('/api/leaderboard/achievements?limit=8');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const data = await response.json();
+      const rows = Array.isArray(data.leaderboard) ? data.leaderboard : [];
+      if (rows.length === 0) {
+        this.leaderboardStatusText.setText('No data yet.');
+        return;
+      }
+      this.leaderboardStatusText.setText('');
+      rows.slice(0, 8).forEach((row, index) => {
+        const rank = index + 1;
+        const name = row.username || 'Unknown';
+        const count = row.achievementCount || 0;
+        const line = `${rank}. ${name} - ${count}`;
+        if (this.leaderboardEntryTexts[index]) {
+          this.leaderboardEntryTexts[index].setText(line);
+        }
+      });
+    } catch (error) {
+      console.warn('Failed to load leaderboard:', error);
+      this.leaderboardStatusText.setText('Leaderboard unavailable');
+    }
+  }
   
   // Socket event handlers
   onLobbyState(data) {
@@ -778,11 +890,14 @@ class LobbyScene extends Phaser.Scene {
 
     this.chiggyButtons = [];
     for (let i = 0; i < 6; i++) {
-      const btn = this.add.rectangle(0, 0, 180, 34, 0x667eea);
+      const btn = this.add.rectangle(0, 0, 230, 40, 0x667eea);
+      btn.setStrokeStyle(2, 0xffffff, 0.35);
       btn.setInteractive({ useHandCursor: true });
       const txt = this.add.text(0, 0, '', {
         fontSize: '14px',
-        fill: '#ffffff'
+        fill: '#ffffff',
+        align: 'center',
+        wordWrap: { width: 210, useAdvancedWrap: true }
       }).setOrigin(0.5);
       this.chiggyButtons.push({ btn, txt });
     }
@@ -817,7 +932,7 @@ class LobbyScene extends Phaser.Scene {
   }
 
   setChiggyButtons(defs) {
-    const startY = 50;
+    const startY = 30;
     const stepY = 36;
     this.chiggyButtons.forEach((entry, index) => {
       if (defs[index]) {
@@ -827,6 +942,33 @@ class LobbyScene extends Phaser.Scene {
         const y = startY + (index * stepY);
         entry.btn.setPosition(0, y);
         entry.txt.setPosition(0, y);
+        entry.txt.setText(def.label);
+        entry.btn.off('pointerdown');
+        entry.btn.on('pointerdown', def.onClick);
+      } else {
+        entry.btn.setVisible(false);
+        entry.txt.setVisible(false);
+        entry.btn.off('pointerdown');
+      }
+    });
+  }
+
+  setChiggyButtonsGrid(defs) {
+    const cols = 2;
+    const startY = 20;
+    const rowStep = 38;
+    const colStep = 190;
+    this.chiggyButtons.forEach((entry, index) => {
+      if (defs[index]) {
+        const def = defs[index];
+        entry.btn.setVisible(true);
+        entry.txt.setVisible(true);
+        const row = Math.floor(index / cols);
+        const col = index % cols;
+        const x = col === 0 ? -colStep / 2 : colStep / 2;
+        const y = startY + (row * rowStep);
+        entry.btn.setPosition(x, y);
+        entry.txt.setPosition(x, y);
         entry.txt.setText(def.label);
         entry.btn.off('pointerdown');
         entry.btn.on('pointerdown', def.onClick);
@@ -866,7 +1008,7 @@ class LobbyScene extends Phaser.Scene {
   showChiggyFunFactTopics() {
     this.chiggyDialogTitle.setText('Fun Fact Topics');
     this.setChiggyBodyText('Pick a topic:');
-    this.setChiggyButtons([
+    this.setChiggyButtonsGrid([
       { label: 'Electromagnetism', onClick: () => this.showChiggyFunFact('electromagnetism') },
       { label: 'Projectile Motion', onClick: () => this.showChiggyFunFact('projectile') },
       { label: 'Distance vs Displacement', onClick: () => this.showChiggyFunFact('distance') },
@@ -968,6 +1110,11 @@ class LobbyScene extends Phaser.Scene {
     }
     this.otherPlayers.forEach(p => p.destroy());
     this.otherPlayers.clear();
+
+    if (this.leaderboardTimer) {
+      this.leaderboardTimer.remove(false);
+      this.leaderboardTimer = null;
+    }
     
     socketManager.removeSceneListeners();
   }

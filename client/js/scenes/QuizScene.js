@@ -67,13 +67,13 @@ class QuizScene extends Phaser.Scene {
     
     // Question info (question number & score)
     this.infoText = this.add.text(width / 2, 80, '', {
-      fontSize: '18px',
+      fontSize: '20px',
       fill: '#000000'
     }).setOrigin(0.5);
     
     // Question text
     this.questionText = this.add.text(width / 2, 140, '', {
-      fontSize: '20px',
+      fontSize: '24px',
       fill: '#000000',
       wordWrap: { width: 700 },
       align: 'center'
@@ -91,7 +91,7 @@ class QuizScene extends Phaser.Scene {
     ];
     
     buttonPositions.forEach((pos, index) => {
-      const btn = this.add.rectangle(pos.x, pos.y, 280, 70, 0xf0f0f0);
+      const btn = this.add.rectangle(pos.x, pos.y, 280, 78, 0xf0f0f0);
       btn.setInteractive({ useHandCursor: true });
       
       btn.on('pointerdown', () => {
@@ -102,7 +102,7 @@ class QuizScene extends Phaser.Scene {
       });
       
       const text = this.add.text(pos.x, pos.y, '', {
-        fontSize: '16px',
+        fontSize: '19px',
         fill: '#000000',
         wordWrap: { width: 250 },
         align: 'center'
@@ -114,7 +114,7 @@ class QuizScene extends Phaser.Scene {
     
     // Feedback text
     this.feedbackText = this.add.text(width / 2, 480, '', {
-      fontSize: '28px',
+      fontSize: '32px',
       fill: '#00aa00',
       fontStyle: 'bold'
     }).setOrigin(0.5);
@@ -123,7 +123,7 @@ class QuizScene extends Phaser.Scene {
     // Instructions
     this.instructionsText = this.add.text(width / 2, height - 12, 
       'Arrow Keys: Select | ENTER: Submit | Tap an answer to submit', {
-      fontSize: '13px',
+      fontSize: '15px',
       fill: '#000000',
       backgroundColor: '#ffffff',
       padding: { x: 8, y: 4 }
@@ -149,7 +149,7 @@ class QuizScene extends Phaser.Scene {
     const bg = this.add.rectangle(0, 0, 420, 320, 0x000000, 0.75);
     bg.setStrokeStyle(2, 0xffffff, 0.2);
     const title = this.add.text(0, -130, 'Select a Topic', {
-      fontSize: '22px',
+      fontSize: '26px',
       fill: '#ffffff'
     }).setOrigin(0.5);
 
@@ -157,10 +157,10 @@ class QuizScene extends Phaser.Scene {
 
     topics.forEach((topic, index) => {
       const y = -70 + index * 45;
-      const btn = this.add.rectangle(0, y, 300, 36, 0x667eea);
+      const btn = this.add.rectangle(0, y, 320, 40, 0x667eea);
       btn.setInteractive({ useHandCursor: true });
       const text = this.add.text(0, y, topic, {
-        fontSize: '16px',
+        fontSize: '18px',
         fill: '#ffffff'
       }).setOrigin(0.5);
       btn.on('pointerdown', () => {
@@ -352,14 +352,14 @@ class QuizScene extends Phaser.Scene {
     this.completionUI = this.add.container(width / 2, height / 2);
     
     const title = this.add.text(0, -100, 'Quiz Complete!', {
-      fontSize: '36px',
+      fontSize: '40px',
       fill: '#00aa00',
       fontStyle: 'bold'
     }).setOrigin(0.5);
     
     const scoreText = this.add.text(0, -30, 
       `Score: ${this.score}/${this.questions.length} (${percentage.toFixed(1)}%)`, {
-      fontSize: '24px',
+      fontSize: '28px',
       fill: '#000000'
     }).setOrigin(0.5);
     
@@ -373,14 +373,14 @@ class QuizScene extends Phaser.Scene {
     }
     
     const messageText = this.add.text(0, 30, message, {
-      fontSize: '20px',
+      fontSize: '22px',
       fill: '#667eea'
     }).setOrigin(0.5);
     
-    const restartBtn = this.add.rectangle(0, 100, 200, 50, 0x667eea);
+    const restartBtn = this.add.rectangle(0, 100, 220, 54, 0x667eea);
     restartBtn.setInteractive({ useHandCursor: true });
     const restartText = this.add.text(0, 100, 'Restart Quiz', {
-      fontSize: '18px',
+      fontSize: '20px',
       fill: '#ffffff'
     }).setOrigin(0.5);
     

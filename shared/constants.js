@@ -284,6 +284,61 @@ const QUIZ_QUESTIONS = [
     ],
     correct: 0,
     topic: "Quantum Mechanics"
+  },
+  {
+    q: "What do we call the idea that a particle can be in many places until we look?",
+    options: [
+      "A) Superposition",
+      "B) Teleportation",
+      "C) Magnetism",
+      "D) Acceleration"
+    ],
+    correct: 0,
+    topic: "Quantum Mechanics"
+  },
+  {
+    q: "When you look to see where a tiny particle is, what happens?",
+    options: [
+      "A) It stays everywhere",
+      "B) It disappears",
+      "C) It picks one place",
+      "D) It turns into light"
+    ],
+    correct: 2,
+    topic: "Quantum Mechanics"
+  },
+  {
+    q: "Quantum tunneling is most like:",
+    options: [
+      "A) A ball rolling over a hill",
+      "B) A ball appearing on the other side without going over",
+      "C) A ball stopping forever",
+      "D) A ball bouncing higher each time"
+    ],
+    correct: 1,
+    topic: "Quantum Mechanics"
+  },
+  {
+    q: "Entanglement means two particles are:",
+    options: [
+      "A) Completely independent",
+      "B) Linked even far apart",
+      "C) Always in the same place",
+      "D) Moving at the same speed"
+    ],
+    correct: 1,
+    topic: "Quantum Mechanics"
+  },
+  {
+    q: "In quantum mechanics, probability tells us:",
+    options: [
+      "A) Exactly where a particle is",
+      "B) The chance of where it might be",
+      "C) That particles never move",
+      "D) Only how heavy it is"
+    ],
+    correct: 1,
+    topic: "Quantum Mechanics"
   }
 ];
 
