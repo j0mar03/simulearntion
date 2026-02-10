@@ -71,36 +71,8 @@ class Player {
         this.sprite.setFrame(0);
       }
       
-      // Create name label
-      this.nameText = scene.add.text(x, y - 70, this.username, {
-        fontSize: '14px',
-        fill: '#ffffff',
-        backgroundColor: '#000000',
-        padding: { x: 5, y: 2 }
-      });
-      this.nameText.setOrigin(0.5);
-      this.nameText.setDepth(1000); // Always on top
-      
-      // Create level label
       const level = (scene && scene.game && scene.game.userData && scene.game.userData.eruditionLevel) || 1;
-      this.levelText = scene.add.text(x, y - 88, `Lv ${level}`, {
-        fontSize: '12px',
-        fill: '#7ed6ff',
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        padding: { x: 4, y: 1 }
-      });
-      this.levelText.setOrigin(0.5);
-      this.levelText.setDepth(1000);
-
-      // Create title label
-      this.titleText = scene.add.text(x, y - 52, this.title, {
-        fontSize: '12px',
-        fill: '#ffd700',
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        padding: { x: 4, y: 1 }
-      });
-      this.titleText.setOrigin(0.5);
-      this.titleText.setDepth(1000);
+      this.createOverheadUI(x, y, level);
       
     // Movement properties
     this.speed = 160;
@@ -135,6 +107,8 @@ class Player {
       // Set minimal properties to prevent further errors
       this.sprite = null;
       this.cursors = null;
+      this.overheadContainer = null;
+      this.overheadBg = null;
       this.nameText = null;
       this.levelText = null;
       this.titleText = null;
@@ -276,6 +250,50 @@ class Player {
     // Load and play new animation
     await this.loadAnimation();
   }
+
+  createOverheadUI(x, y, level) {
+    const overheadScale = 0.15;
+    const overheadWidth = 1280 * overheadScale;
+    const overheadHeight = 720 * overheadScale;
+    this.overheadYOffset = 88;
+
+    this.overheadContainer = this.scene.add.container(x, y - this.overheadYOffset);
+    this.overheadContainer.setDepth(1000);
+
+    this.overheadBg = this.scene.add.image(0, 0, 'avatar-ui-overhead').setOrigin(0.5);
+    this.overheadBg.setScale(overheadScale);
+    this.overheadBg.setAlpha(0.8);
+
+    const levelXOffsetPx = 1;
+    const usernameYOffsetPx = 8;
+    this.levelText = this.scene.add.text(-0.32 * overheadWidth + levelXOffsetPx, 0, `Lv ${level}`, {
+      fontSize: '15px',
+      fill: '#ffffff',
+      fontStyle: 'bold',
+      stroke: '#3b1e0a',
+      strokeThickness: 3
+    });
+    this.levelText.setOrigin(0.5);
+
+    this.nameText = this.scene.add.text(0.18 * overheadWidth, -0.12 * overheadHeight + usernameYOffsetPx, this.username, {
+      fontSize: '15px',
+      fill: '#ffffff',
+      fontStyle: 'bold',
+      stroke: '#3b1e0a',
+      strokeThickness: 3
+    });
+    this.nameText.setOrigin(0.5);
+
+    this.titleText = this.scene.add.text(0.18 * overheadWidth, 0.12 * overheadHeight, this.title, {
+      fontSize: '13px',
+      fill: '#ffffff',
+      stroke: '#3b1e0a',
+      strokeThickness: 3
+    });
+    this.titleText.setOrigin(0.5);
+
+    this.overheadContainer.add([this.overheadBg, this.levelText, this.nameText, this.titleText]);
+  }
   
   update() {
     // Always ensure sprite is visible and active
@@ -413,13 +431,9 @@ class Player {
       this.sprite.setActive(true);
     }
     
-    // Update labels position
-    this.nameText.setPosition(this.sprite.x, this.sprite.y - 70);
-    if (this.levelText) {
-      this.levelText.setPosition(this.sprite.x, this.sprite.y - 88);
-    }
-    if (this.titleText) {
-      this.titleText.setPosition(this.sprite.x, this.sprite.y - 52);
+    // Update overhead UI position
+    if (this.overheadContainer) {
+      this.overheadContainer.setPosition(this.sprite.x, this.sprite.y - this.overheadYOffset);
     }
     
     // Send position to server if moved (track last sent, not same-frame position)
@@ -441,12 +455,8 @@ class Player {
   
   setPosition(x, y) {
     this.sprite.setPosition(x, y);
-    this.nameText.setPosition(x, y - 70);
-    if (this.levelText) {
-      this.levelText.setPosition(x, y - 88);
-    }
-    if (this.titleText) {
-      this.titleText.setPosition(x, y - 52);
+    if (this.overheadContainer) {
+      this.overheadContainer.setPosition(x, y - this.overheadYOffset);
     }
   }
   
@@ -466,9 +476,12 @@ class Player {
   
   destroy() {
     this.sprite.destroy();
-    this.nameText.destroy();
-    if (this.titleText) {
-      this.titleText.destroy();
+    if (this.overheadContainer) {
+      this.overheadContainer.destroy(true);
+      this.overheadContainer = null;
     }
+    this.nameText = null;
+    this.levelText = null;
+    this.titleText = null;
   }
 }

@@ -78,6 +78,8 @@ class BootScene extends Phaser.Scene {
     this.load.image('ach-physicist', '/assets/achievement ui/physicist.png');
     this.load.image('ach-an-enthusiast', '/assets/achievement ui/an_enthusiast.png');
     this.load.image('ach-trailblazer', '/assets/achievement ui/the_trailblazer.png');
+    this.load.image('avatar-ui-overhead', '/assets/npc icons/avatarUiOverhead.png');
+    this.load.image('library-topic-ui', '/assets/npc icons/UIinLibrary.png');
     
     // --- LOBBY UI ---
     this.load.image('profile-ui', '/assets/ui/lobby/profile ui.png');

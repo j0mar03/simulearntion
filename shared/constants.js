@@ -231,113 +231,91 @@ const QUIZ_QUESTIONS = [
 
   // Quantum Mechanics
   {
-    q: "What is it called when a particle magically appears on the other side of a \"wall\"?",
+    q: "What is the primary goal of Quantum Gravity theory?",
     options: [
-      "A) Entanglement",
-      "B) High-fiving",
-      "C) Quantum tunneling",
-      "D) The flying kiss"
+      "A) To replace Quantum Mechanics with a more complete theory.",
+      "B) To unify the theories of General Relativity and Quantum Mechanics.",
+      "C) To prove that gravity is the strongest fundamental force.",
+      "D) To modify Einstein's theory of Special Relativity."
+    ],
+    correct: 1,
+    topic: "Quantum Mechanics"
+  },
+  {
+    q: "According to the text, who is credited as the founder of quantum mechanics and formulated a relativistic quantum theory?",
+    options: [
+      "A) Albert Einstein",
+      "B) Niels Bohr",
+      "C) Paul Dirac",
+      "D) Isaac Newton"
     ],
     correct: 2,
     topic: "Quantum Mechanics"
   },
   {
-    q: "If two electrons are \"entangled\" best friends and one spins left, what does the other do?",
+    q: "What does the \"quantum\" in Quantum Mechanics fundamentally refer to?",
     options: [
-      "A) Spins left too",
-      "B) Instantly spins to the right",
-      "C) Stops spinning",
-      "D) High-fives the ground"
-    ],
-    correct: 1,
-    topic: "Quantum Mechanics"
-  },
-  {
-    q: "In the tiny world of particles, how many places can a toy car be at once?",
-    options: [
-      "A) Only one",
-      "B) Two places at once",
-      "C) Zero",
-      "D) It disappears forever"
-    ],
-    correct: 1,
-    topic: "Quantum Mechanics"
-  },
-  {
-    q: "When do you find out which room a tiny electron is actually in?",
-    options: [
-      "A) When it spins",
-      "B) When you go look for it",
-      "C) When it hits a wall",
-      "D) When it turns into a magnet"
-    ],
-    correct: 1,
-    topic: "Quantum Mechanics"
-  },
-  {
-    q: "How fast do \"entangled\" best friends talk to each other?",
-    options: [
-      "A) Faster than anything",
-      "B) At the speed of a scooter",
-      "C) Like a bird flying",
-      "D) As slow as a rock"
-    ],
-    correct: 0,
-    topic: "Quantum Mechanics"
-  },
-  {
-    q: "What do we call the idea that a particle can be in many places until we look?",
-    options: [
-      "A) Superposition",
-      "B) Teleportation",
-      "C) Magnetism",
-      "D) Acceleration"
-    ],
-    correct: 0,
-    topic: "Quantum Mechanics"
-  },
-  {
-    q: "When you look to see where a tiny particle is, what happens?",
-    options: [
-      "A) It stays everywhere",
-      "B) It disappears",
-      "C) It picks one place",
-      "D) It turns into light"
+      "A) The speed of light.",
+      "B) The curvature of spacetime.",
+      "C) The smallest discrete unit of an entity.",
+      "D) The study of mechanical engines."
     ],
     correct: 2,
     topic: "Quantum Mechanics"
   },
   {
-    q: "Quantum tunneling is most like:",
+    q: "How does General Relativity describe gravity?",
     options: [
-      "A) A ball rolling over a hill",
-      "B) A ball appearing on the other side without going over",
-      "C) A ball stopping forever",
-      "D) A ball bouncing higher each time"
+      "A) As a force transmitted by particles called gravitons.",
+      "B) As the curvature of spacetime caused by mass and energy.",
+      "C) As a consequence of the uncertainty principle.",
+      "D) As an electromagnetic interaction between masses."
     ],
     correct: 1,
     topic: "Quantum Mechanics"
   },
   {
-    q: "Entanglement means two particles are:",
+    q: "Which principle in Quantum Mechanics states that the probability of finding a particle in a certain position is uncertain?",
     options: [
-      "A) Completely independent",
-      "B) Linked even far apart",
-      "C) Always in the same place",
-      "D) Moving at the same speed"
+      "A) The Exclusion Principle",
+      "B) The Correspondence Principle",
+      "C) The Equivalence Principle",
+      "D) The Uncertainty Principle"
     ],
-    correct: 1,
+    correct: 3,
     topic: "Quantum Mechanics"
   },
   {
-    q: "In quantum mechanics, probability tells us:",
+    q: "What is a key reason why Quantum Gravity remains a theoretical framework?",
     options: [
-      "A) Exactly where a particle is",
-      "B) The chance of where it might be",
-      "C) That particles never move",
-      "D) Only how heavy it is"
+      "A) It is not yet proven by experiment or observation.",
+      "B) It contradicts both General Relativity and Quantum Mechanics.",
+      "C) It has been mathematically proven impossible.",
+      "D) Albert Einstein rejected its core ideas."
     ],
-    correct: 1,
+    correct: 0,
+    topic: "Quantum Mechanics"
+  },
+  {
+    q: "According to the \"Fun Fact,\" how does the strength of gravity compare to other fundamental forces like electromagnetism?",
+    options: [
+      "A) Gravity is much stronger.",
+      "B) They are roughly equal in strength.",
+      "C) Gravity is much weaker.",
+      "D) Their strength cannot be compared."
+    ],
+    correct: 2,
+    topic: "Quantum Mechanics"
+  },
+  {
+    q: "Which physicist, described as the \"Father of Modern Physics,\" developed the theory of General Relativity?",
+    options: [
+      "A) Paul Dirac",
+      "B) Max Planck",
+      "C) Albert Einstein",
+      "D) Werner Heisenberg"
+    ],
+    correct: 2,
     topic: "Quantum Mechanics"
   }
 ];

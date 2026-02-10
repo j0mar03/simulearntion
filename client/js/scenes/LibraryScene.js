@@ -51,15 +51,15 @@ class LibraryScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(10);
     
     // Study button - using real asset (smaller and repositioned)
-    const studyBtn = this.add.image(700, 50, 'study-btn');
-    studyBtn.setScale(0.15); // Much smaller
-    studyBtn.setInteractive({ useHandCursor: true });
-    studyBtn.setDepth(10);
+    this.studyBtn = this.add.image(700, 50, 'study-btn');
+    this.studyBtn.setScale(0.15); // Much smaller
+    this.studyBtn.setInteractive({ useHandCursor: true });
+    this.studyBtn.setDepth(10);
     
     this.studyMode = false;
     this.selectedTopic = null;
     
-    studyBtn.on('pointerdown', () => {
+    this.studyBtn.on('pointerdown', () => {
       this.showTopics();
     });
     
@@ -325,13 +325,14 @@ class LibraryScene extends Phaser.Scene {
     this.topicUI = this.add.container(width / 2, 200);
     
     // Background
-    const bg = this.add.rectangle(0, 0, 400, 250, 0x000000, 0.8);
+    const bg = this.add.image(0, 0, 'library-topic-ui').setOrigin(0.5);
+    bg.setDisplaySize(520, 325);
     this.topicUI.add(bg);
     
     // Title
     const title = this.add.text(0, -100, 'Select a Topic', {
       fontSize: '24px',
-      fill: '#ffffff'
+      fill: '#2b1b12'
     }).setOrigin(0.5);
     this.topicUI.add(title);
     
@@ -342,7 +343,7 @@ class LibraryScene extends Phaser.Scene {
       
       const text = this.add.text(0, -40 + index * 70, topic, {
         fontSize: '18px',
-        fill: '#ffffff'
+        fill: '#2b1b12'
       }).setOrigin(0.5);
       
       btn.on('pointerdown', () => {
@@ -359,7 +360,7 @@ class LibraryScene extends Phaser.Scene {
     closeBtn.setInteractive({ useHandCursor: true });
     const closeText = this.add.text(0, 100, 'Close', {
       fontSize: '16px',
-      fill: '#ffffff'
+      fill: '#2b1b12'
     }).setOrigin(0.5);
     
     closeBtn.on('pointerdown', () => {
@@ -382,13 +383,14 @@ class LibraryScene extends Phaser.Scene {
     this.topicUI = this.add.container(width / 2, 250);
     
     // Background
-    const bg = this.add.rectangle(0, 0, 500, 350, 0x000000, 0.9);
+    const bg = this.add.image(0, 0, 'library-topic-ui').setOrigin(0.5);
+    bg.setDisplaySize(520, 325);
     this.topicUI.add(bg);
     
     // Title
     const title = this.add.text(0, -150, topic, {
       fontSize: '28px',
-      fill: '#667eea'
+      fill: '#2b1b12'
     }).setOrigin(0.5);
     this.topicUI.add(title);
     
@@ -396,7 +398,7 @@ class LibraryScene extends Phaser.Scene {
     lessons.forEach((lesson, index) => {
       const text = this.add.text(0, -80 + index * 60, lesson, {
         fontSize: '20px',
-        fill: '#ffffff'
+        fill: '#2b1b12'
       }).setOrigin(0.5);
       this.topicUI.add(text);
     });
@@ -406,7 +408,7 @@ class LibraryScene extends Phaser.Scene {
     backBtn.setInteractive({ useHandCursor: true });
     const backText = this.add.text(0, 150, 'Back', {
       fontSize: '16px',
-      fill: '#ffffff'
+      fill: '#2b1b12'
     }).setOrigin(0.5);
     
     backBtn.on('pointerdown', () => {

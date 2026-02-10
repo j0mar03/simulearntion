@@ -55,34 +55,7 @@ class OtherPlayer {
     // Load and play GIF animation
     this.loadAnimation();
     
-    // Create name label
-    this.nameText = scene.add.text(startX, startY - 70, playerData.username, {
-      fontSize: '14px',
-      fill: '#ffffff',
-      backgroundColor: '#000000',
-      padding: { x: 5, y: 2 }
-    });
-    this.nameText.setOrigin(0.5);
-    this.nameText.setDepth(1000); // Always on top
-
-    this.levelText = scene.add.text(startX, startY - 88, `Lv ${this.level}`, {
-      fontSize: '12px',
-      fill: '#7ed6ff',
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      padding: { x: 4, y: 1 }
-    });
-    this.levelText.setOrigin(0.5);
-    this.levelText.setDepth(1000);
-    
-    // Create title label
-    this.titleText = scene.add.text(startX, startY - 52, this.title, {
-      fontSize: '12px',
-      fill: '#ffd700',
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      padding: { x: 4, y: 1 }
-    });
-    this.titleText.setOrigin(0.5);
-    this.titleText.setDepth(1000);
+    this.createOverheadUI(startX, startY);
     
     // Target position for smooth movement - use actual position from server
     this.targetX = startX;
@@ -158,6 +131,50 @@ class OtherPlayer {
     this.sprite.setVisible(true);
     this.sprite.setAlpha(0.9);
   }
+
+  createOverheadUI(x, y) {
+    const overheadScale = 0.15;
+    const overheadWidth = 1280 * overheadScale;
+    const overheadHeight = 720 * overheadScale;
+    this.overheadYOffset = 88;
+
+    this.overheadContainer = this.scene.add.container(x, y - this.overheadYOffset);
+    this.overheadContainer.setDepth(1000);
+
+    this.overheadBg = this.scene.add.image(0, 0, 'avatar-ui-overhead').setOrigin(0.5);
+    this.overheadBg.setScale(overheadScale);
+    this.overheadBg.setAlpha(0.8);
+
+    const levelXOffsetPx = 1;
+    const usernameYOffsetPx = 8;
+    this.levelText = this.scene.add.text(-0.32 * overheadWidth + levelXOffsetPx, 0, `Lv ${this.level}`, {
+      fontSize: '15px',
+      fill: '#ffffff',
+      fontStyle: 'bold',
+      stroke: '#3b1e0a',
+      strokeThickness: 3
+    });
+    this.levelText.setOrigin(0.5);
+
+    this.nameText = this.scene.add.text(0.18 * overheadWidth, -0.12 * overheadHeight + usernameYOffsetPx, this.username, {
+      fontSize: '15px',
+      fill: '#ffffff',
+      fontStyle: 'bold',
+      stroke: '#3b1e0a',
+      strokeThickness: 3
+    });
+    this.nameText.setOrigin(0.5);
+
+    this.titleText = this.scene.add.text(0.18 * overheadWidth, 0.12 * overheadHeight, this.title, {
+      fontSize: '13px',
+      fill: '#ffffff',
+      stroke: '#3b1e0a',
+      strokeThickness: 3
+    });
+    this.titleText.setOrigin(0.5);
+
+    this.overheadContainer.add([this.overheadBg, this.levelText, this.nameText, this.titleText]);
+  }
   
   async updateAvatar(avatarConfig) {
     try {
@@ -168,8 +185,10 @@ class OtherPlayer {
       const oldX = this.sprite.x;
       const oldY = this.sprite.y;
       const oldFlip = this.sprite.flipX;
+      const oldOverhead = this.overheadContainer;
       const oldNameText = this.nameText;
       const oldTitleText = this.titleText;
+      const oldLevelText = this.levelText;
       
       // Stop current animation
       if (this.currentAnimation && this.sprite.anims.isPlaying) {
@@ -213,31 +232,16 @@ class OtherPlayer {
         this.scene.physics.add.existing(this.sprite);
       }
       
-      // Recreate name label if it was destroyed
-      if (!oldNameText || !oldNameText.active) {
-        this.nameText = this.scene.add.text(oldX, oldY - 70, this.username, {
-          fontSize: '14px',
-          fill: '#ffffff',
-          backgroundColor: '#000000',
-          padding: { x: 5, y: 2 }
-        });
-        this.nameText.setOrigin(0.5);
-        this.nameText.setDepth(1000);
+      if (!oldOverhead || !oldOverhead.active || !oldNameText || !oldTitleText || !oldLevelText) {
+        if (oldOverhead) {
+          oldOverhead.destroy(true);
+        }
+        this.createOverheadUI(oldX, oldY);
       } else {
+        this.overheadContainer = oldOverhead;
         this.nameText = oldNameText;
-      }
-      
-      if (!oldTitleText || !oldTitleText.active) {
-        this.titleText = this.scene.add.text(oldX, oldY - 52, this.title, {
-          fontSize: '12px',
-          fill: '#ffd700',
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
-          padding: { x: 4, y: 1 }
-        });
-        this.titleText.setOrigin(0.5);
-        this.titleText.setDepth(1000);
-      } else {
         this.titleText = oldTitleText;
+        this.levelText = oldLevelText;
       }
       
       // Update to correct texture once available
@@ -398,25 +402,12 @@ class OtherPlayer {
       this.sprite.setActive(true);
     }
     
-    // Update name label position to follow sprite
-      if (this.nameText && this.sprite) {
-        this.nameText.setPosition(this.sprite.x, this.sprite.y - 70);
-        // Ensure name label is visible
-        if (!this.nameText.visible) {
-          this.nameText.setVisible(true);
-        }
+    // Update overhead UI position to follow sprite
+    if (this.overheadContainer && this.sprite) {
+      this.overheadContainer.setPosition(this.sprite.x, this.sprite.y - this.overheadYOffset);
+      if (!this.overheadContainer.visible) {
+        this.overheadContainer.setVisible(true);
       }
-      if (this.levelText && this.sprite) {
-        this.levelText.setPosition(this.sprite.x, this.sprite.y - 88);
-        if (!this.levelText.visible) {
-          this.levelText.setVisible(true);
-        }
-      }
-      if (this.titleText && this.sprite) {
-        this.titleText.setPosition(this.sprite.x, this.sprite.y - 52);
-        if (!this.titleText.visible) {
-          this.titleText.setVisible(true);
-        }
     }
   }
   
@@ -440,14 +431,8 @@ class OtherPlayer {
       if (distance > 200) {
         this.sprite.x = this.targetX;
         this.sprite.y = this.targetY;
-        if (this.nameText) {
-          this.nameText.setPosition(this.targetX, this.targetY - 70);
-        }
-        if (this.levelText) {
-          this.levelText.setPosition(this.targetX, this.targetY - 88);
-        }
-        if (this.titleText) {
-          this.titleText.setPosition(this.targetX, this.targetY - 52);
+        if (this.overheadContainer) {
+          this.overheadContainer.setPosition(this.targetX, this.targetY - this.overheadYOffset);
         }
         console.log(`Teleported ${this.username} to (${this.targetX}, ${this.targetY}) - was too far`);
       }
@@ -468,12 +453,8 @@ class OtherPlayer {
     this.sprite.setPosition(x, y);
     this.targetX = x;
     this.targetY = y;
-    this.nameText.setPosition(x, y - 70);
-    if (this.levelText) {
-      this.levelText.setPosition(x, y - 88);
-    }
-    if (this.titleText) {
-      this.titleText.setPosition(x, y - 52);
+    if (this.overheadContainer) {
+      this.overheadContainer.setPosition(x, y - this.overheadYOffset);
     }
   }
   
@@ -495,12 +476,12 @@ class OtherPlayer {
   
   destroy() {
     this.sprite.destroy();
-    this.nameText.destroy();
-    if (this.levelText) {
-      this.levelText.destroy();
+    if (this.overheadContainer) {
+      this.overheadContainer.destroy(true);
+      this.overheadContainer = null;
     }
-    if (this.titleText) {
-      this.titleText.destroy();
-    }
+    this.nameText = null;
+    this.levelText = null;
+    this.titleText = null;
   }
 }
