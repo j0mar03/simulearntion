@@ -124,6 +124,7 @@ class LibraryScene extends Phaser.Scene {
     
     // Topic UI elements (hidden initially)
     this.topicUI = null;
+    this.overheadUIVisible = true;
   }
   
   update(time, delta) {
@@ -290,7 +291,7 @@ class LibraryScene extends Phaser.Scene {
     this.leaderboardStatusText.setText('Loading...');
     this.leaderboardEntryTexts.forEach(t => t.setText(''));
     try {
-      const response = await fetch('/api/leaderboard/achievements?limit=8');
+      const response = await fetch('api/leaderboard/achievements?limit=8');
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
@@ -320,7 +321,7 @@ class LibraryScene extends Phaser.Scene {
     if (this.topicUI) return;
     
     const width = this.cameras.main.width;
-    const topics = Object.keys(PHYSICS_LESSONS);
+    this.setOverheadUIVisible(false);
     
     this.topicUI = this.add.container(width / 2, 200);
     
@@ -330,30 +331,27 @@ class LibraryScene extends Phaser.Scene {
     this.topicUI.add(bg);
     
     // Title
-    const title = this.add.text(0, -100, 'Select a Topic', {
+    const title = this.add.text(0, -100, 'Quantum Mechanics Reviewer', {
       fontSize: '24px',
       fill: '#2b1b12'
     }).setOrigin(0.5);
     this.topicUI.add(title);
     
-    // Topic buttons
-    topics.forEach((topic, index) => {
-      const btn = this.add.rectangle(0, -40 + index * 70, 300, 50, 0x667eea);
-      btn.setInteractive({ useHandCursor: true });
-      
-      const text = this.add.text(0, -40 + index * 70, topic, {
-        fontSize: '18px',
-        fill: '#2b1b12'
-      }).setOrigin(0.5);
-      
-      btn.on('pointerdown', () => {
-        this.showLessons(topic);
-        socketManager.studyTopic(topic);
-      });
-      
-      this.topicUI.add(btn);
-      this.topicUI.add(text);
+    // Open book button
+    const openBtn = this.add.rectangle(0, -10, 220, 50, 0x667eea);
+    openBtn.setInteractive({ useHandCursor: true });
+    const openText = this.add.text(0, -10, 'Open Book', {
+      fontSize: '18px',
+      fill: '#2b1b12'
+    }).setOrigin(0.5);
+    
+    openBtn.on('pointerdown', () => {
+      this.openBookWithAnimation();
+      socketManager.studyTopic('Quantum Mechanics Reviewer');
     });
+    
+    this.topicUI.add(openBtn);
+    this.topicUI.add(openText);
     
     // Close button
     const closeBtn = this.add.rectangle(0, 100, 100, 40, 0xff0000);
@@ -419,11 +417,147 @@ class LibraryScene extends Phaser.Scene {
     this.topicUI.add(backBtn);
     this.topicUI.add(backText);
   }
+
+  openBookWithAnimation() {
+    if (this.topicUI) {
+      this.topicUI.destroy();
+      this.topicUI = null;
+    }
+    
+    const width = this.cameras.main.width;
+
+    this.bookPages = [
+      "[Quantum Gravity]\n•A theoretical framework that combines 2 theory:\n1. General Relativity\n2. Quantum Mechanics",
+      "[Paul dirac]\n•A famous British physicist who studied electrical engineering and mathematics.\n•Founder of quantum mechanics\n•Formulated a fully relativistic quantum theory (combination of quantum mechanics and general relativity).\n__________________",
+      "[Quantum Mechanics]\n•It describes the behavior of matter and light.\n•Quantum, describes the smallest discrete unit of an entity\n•Mechanic, describes the behavior or a motion of that entity.\n\n•The probability of finding the particles in certain position is uncertain (Uncertainty principle)\n__________________",
+      "[Albert Einstein]\n•A German theoretical physicist who studied physics and mathematics.\n• Father of Modern physics\n• Developed the theory of relativity (General and special Relativity)",
+      "[General Relativity]\n•Describes that gravity is not a force, but the curvature of spacetime caused by mass and energy\n•Developed by einstein\n_______________",
+      "[Fun fact?]\n• Gravity is much more weaker compared to other forces (Like electromagnetic force)\n• Quantum Gravity theory is not yet proven.",
+      "While General Relativity excels at explaining the cosmos on a massive scale and Quantum Mechanics rules the subatomic world, they famously clash in \"extreme environments\" where massive gravity meets microscopic scales. The most prominent example is a black hole singularity, a point of infinite density where both theories must be used simultaneously, yet their math fails to align. Because of this conflict, physicists are searching for a \"Theory of Everything.\"",
+      "One of the leading theoretical candidates is String Theory, which proposes that the fundamental building blocks of the universe are not point-like particles, but incredibly tiny, vibrating one-dimensional strings. The different ways these strings vibrate determine the properties of particles, potentially providing the mathematical bridge needed to unify gravity with the other fundamental forces."
+    ];
+
+    this.bookPageIndex = 0;
+    
+    this.topicUI = this.add.container(width / 2, 250);
+    
+    // Background
+    const bg = this.add.image(0, 0, 'library-topic-ui').setOrigin(0.5);
+    bg.setDisplaySize(520, 325);
+    // Start as a thin vertical line, then expand outward
+    bg.setScale(0.02, 0.92);
+    bg.setAlpha(0.85);
+    this.topicUI.add(bg);
+
+    // Subtle center seam to sell the "opening" effect
+    const seam = this.add.rectangle(0, 0, 6, 300, 0x8b6b54, 0.45);
+    seam.setScale(0.4, 0.8);
+    seam.setAlpha(0);
+    this.topicUI.add(seam);
+    
+    this.tweens.add({
+      targets: [bg, seam],
+      scaleX: 1,
+      scaleY: 1,
+      alpha: 1,
+      duration: 420,
+      ease: 'Back.Out',
+      onComplete: () => {
+        this.renderBookPage(this.bookPageIndex);
+      }
+    });
+  }
+
+  renderBookPage(pageIndex) {
+    if (!this.topicUI || !this.bookPages || !this.bookPages[pageIndex]) return;
+    
+    this.topicUI.removeAll(true);
+    
+    // Background
+    const bg = this.add.image(0, 0, 'library-topic-ui').setOrigin(0.5);
+    bg.setDisplaySize(520, 325);
+    this.topicUI.add(bg);
+    
+    // Title
+    const title = this.add.text(0, -150, 'Quantum Mechanics Reviewer', {
+      fontSize: '22px',
+      fill: '#2b1b12'
+    }).setOrigin(0.5);
+    this.topicUI.add(title);
+    
+    // Page content
+    const content = this.add.text(0, -90, this.bookPages[pageIndex], {
+      fontSize: '16px',
+      fill: '#2b1b12',
+      align: 'center',
+      wordWrap: { width: 440, useAdvancedWrap: true }
+    }).setOrigin(0.5, 0);
+    content.setAlpha(0);
+    this.topicUI.add(content);
+    
+    this.tweens.add({
+      targets: content,
+      alpha: 1,
+      duration: 220,
+      ease: 'Quad.Out'
+    });
+    
+    // Navigation
+    const prevBtn = this.add.rectangle(-130, 140, 90, 36, 0x667eea);
+    prevBtn.setInteractive({ useHandCursor: true });
+    const prevText = this.add.text(-130, 140, 'Prev', {
+      fontSize: '14px',
+      fill: '#2b1b12'
+    }).setOrigin(0.5);
+    prevBtn.setAlpha(pageIndex === 0 ? 0.4 : 1);
+    prevBtn.disableInteractive();
+    if (pageIndex > 0) {
+      prevBtn.setInteractive({ useHandCursor: true });
+      prevBtn.on('pointerdown', () => {
+        this.bookPageIndex -= 1;
+        this.renderBookPage(this.bookPageIndex);
+      });
+    }
+    
+    const nextBtn = this.add.rectangle(130, 140, 90, 36, 0x667eea);
+    nextBtn.setInteractive({ useHandCursor: true });
+    const nextText = this.add.text(130, 140, 'Next', {
+      fontSize: '14px',
+      fill: '#2b1b12'
+    }).setOrigin(0.5);
+    nextBtn.setAlpha(pageIndex === this.bookPages.length - 1 ? 0.4 : 1);
+    nextBtn.disableInteractive();
+    if (pageIndex < this.bookPages.length - 1) {
+      nextBtn.setInteractive({ useHandCursor: true });
+      nextBtn.on('pointerdown', () => {
+        this.bookPageIndex += 1;
+        this.renderBookPage(this.bookPageIndex);
+      });
+    }
+    
+    // Back button
+    const backBtn = this.add.rectangle(0, 140, 90, 36, 0xff6666);
+    backBtn.setInteractive({ useHandCursor: true });
+    const backText = this.add.text(0, 140, 'Back', {
+      fontSize: '14px',
+      fill: '#2b1b12'
+    }).setOrigin(0.5);
+    
+    backBtn.on('pointerdown', () => {
+      this.hideTopicUI();
+      this.showTopics();
+    });
+    
+    this.topicUI.add([prevBtn, prevText, nextBtn, nextText, backBtn, backText]);
+  }
   
   hideTopicUI() {
     if (this.topicUI) {
       this.topicUI.destroy();
       this.topicUI = null;
+    }
+    if (!this.parroDialogVisible) {
+      this.setOverheadUIVisible(true);
     }
   }
   
@@ -585,6 +719,7 @@ class LibraryScene extends Phaser.Scene {
     if (!this.parroDialog || this.parroDialogVisible) return;
     this.parroDialogVisible = true;
     this.parroDialog.setVisible(true);
+    this.setOverheadUIVisible(false);
     this.setParroBodyText(
       'Welcome to the Library, SimuLearner!\nHere, you can access the learning materials that are essential for your study!'
     );
@@ -595,10 +730,25 @@ class LibraryScene extends Phaser.Scene {
     this.parroDialogVisible = false;
     this.parroDialog.setVisible(false);
     this.parroDialogCooldown = 700;
+    if (!this.topicUI) {
+      this.setOverheadUIVisible(true);
+    }
     if (this.parroTextTimer) {
       this.parroTextTimer.remove(false);
       this.parroTextTimer = null;
     }
+  }
+
+  setOverheadUIVisible(visible) {
+    this.overheadUIVisible = !!visible;
+    if (this.player && this.player.overheadContainer) {
+      this.player.overheadContainer.setVisible(this.overheadUIVisible);
+    }
+    this.otherPlayers.forEach(otherPlayer => {
+      if (otherPlayer && otherPlayer.overheadContainer) {
+        otherPlayer.overheadContainer.setVisible(this.overheadUIVisible);
+      }
+    });
   }
 
   setParroBodyText(text) {

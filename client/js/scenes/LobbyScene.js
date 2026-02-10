@@ -101,11 +101,10 @@ class LobbyScene extends Phaser.Scene {
     
     // Achievements button
     try {
-      const achieveBtn = this.add.rectangle(50, 250, 180, 40, 0xf5576c);
-      this.add.text(50, 250, '🏆 Achievements', {
-        fontSize: '14px',
-        fill: '#ffffff'
-      }).setOrigin(0.5).setDepth(11);
+      const achieveBtn = this.add.rectangle(50, 250, 140, 32, 0x000000, 0);
+      const achieveIcon = this.add.image(50, 250, 'achievement-locked');
+      achieveIcon.setScale(0.14);
+      achieveIcon.setDepth(11);
       achieveBtn.setInteractive({ useHandCursor: true });
       achieveBtn.on('pointerdown', () => {
         try {
@@ -121,8 +120,8 @@ class LobbyScene extends Phaser.Scene {
 
     // Tutorial button (replay onboarding)
     try {
-      const tutorialBtn = this.add.rectangle(50, 300, 180, 40, 0x4a90e2);
-      this.add.text(50, 300, '📘 Tutorial', {
+      const tutorialBtn = this.add.rectangle(50, 330, 180, 40, 0x4a90e2);
+      this.add.text(50, 330, '📘 Tutorial', {
         fontSize: '14px',
         fill: '#ffffff'
       }).setOrigin(0.5).setDepth(11);
@@ -140,8 +139,8 @@ class LobbyScene extends Phaser.Scene {
     }
     
     // Logout button
-    const logoutBtn = this.add.rectangle(50, 350, 180, 40, 0xff4444);
-    this.add.text(50, 350, '🚪 Logout', {
+    const logoutBtn = this.add.rectangle(50, 380, 180, 40, 0xff4444);
+    this.add.text(50, 380, '🚪 Logout', {
       fontSize: '14px',
       fill: '#ffffff'
     }).setOrigin(0.5).setDepth(11);
@@ -653,7 +652,7 @@ class LobbyScene extends Phaser.Scene {
     this.leaderboardStatusText.setText('Loading...');
     this.leaderboardEntryTexts.forEach(t => t.setText(''));
     try {
-      const response = await fetch('/api/leaderboard/achievements?limit=8');
+      const response = await fetch('api/leaderboard/achievements?limit=8');
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }

@@ -317,6 +317,28 @@ const QUIZ_QUESTIONS = [
     ],
     correct: 2,
     topic: "Quantum Mechanics"
+  },
+  {
+    q: "In which of the following environments would the laws of Quantum Gravity be most necessary to understand physics?",
+    options: [
+      "A) The orbit of planets around a star.",
+      "B) The behavior of light passing through a glass prism.",
+      "C) The singularity at the center of a black hole.",
+      "D) The chemical reactions within a biological cell."
+    ],
+    correct: 2,
+    topic: "Quantum Mechanics"
+  },
+  {
+    q: "While several theories attempt to bridge the gap, which well-known (though unproven) framework suggests that fundamental particles are actually tiny, vibrating one-dimensional lines?",
+    options: [
+      "A) Kinetic Molecular Theory",
+      "B) String Theory",
+      "C) Big Bang Theory",
+      "D) Atomic Theory"
+    ],
+    correct: 1,
+    topic: "Quantum Mechanics"
   }
 ];
 

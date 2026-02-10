@@ -171,6 +171,7 @@ body {
 #game-container {
     position: relative;
     display: none;
+    z-index: 1;
 }
 
 #game-container.active {
@@ -237,7 +238,8 @@ body {
     background: rgba(0,0,0,0.8);
     border-radius: 10px;
     padding: 10px;
-    z-index: 100;
+    z-index: 1000;
+    pointer-events: auto;
 }
 
 .chat-close {
@@ -253,13 +255,15 @@ body {
     cursor: pointer;
     font-size: 14px;
     line-height: 22px;
+    z-index: 1001;
+    pointer-events: auto;
 }
 
 .chat-toggle {
     position: fixed;
     bottom: 20px;
     left: 20px;
-    z-index: 110;
+    z-index: 1001;
     padding: 8px 12px;
     border: none;
     border-radius: 8px;

@@ -145,10 +145,10 @@ class OtherPlayer {
     this.overheadBg.setScale(overheadScale);
     this.overheadBg.setAlpha(0.8);
 
-    const levelXOffsetPx = 1;
+    const levelXOffsetPx = 2;
     const usernameYOffsetPx = 8;
     this.levelText = this.scene.add.text(-0.32 * overheadWidth + levelXOffsetPx, 0, `Lv ${this.level}`, {
-      fontSize: '15px',
+      fontSize: '17px',
       fill: '#ffffff',
       fontStyle: 'bold',
       stroke: '#3b1e0a',
@@ -405,8 +405,9 @@ class OtherPlayer {
     // Update overhead UI position to follow sprite
     if (this.overheadContainer && this.sprite) {
       this.overheadContainer.setPosition(this.sprite.x, this.sprite.y - this.overheadYOffset);
-      if (!this.overheadContainer.visible) {
-        this.overheadContainer.setVisible(true);
+      const allowVisible = !(this.scene && this.scene.overheadUIVisible === false);
+      if (this.overheadContainer.visible !== allowVisible) {
+        this.overheadContainer.setVisible(allowVisible);
       }
     }
   }
