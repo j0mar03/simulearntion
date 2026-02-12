@@ -23,6 +23,9 @@ const initializeSocketHandler = require('./socket-handler');
 const app = express();
 const server = http.createServer(app);
 
+// Trust proxy headers (nginx) so req.ip is the real client IP
+app.set('trust proxy', 1);
+
 // Initialize Socket.IO
 const io = new Server(server, {
   cors: {

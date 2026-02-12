@@ -318,6 +318,15 @@ function showError(message) {
   }, 5000);
 }
 
+async function parseJsonSafe(response) {
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    const text = await response.text().catch(() => '');
+    return { __nonJson: true, text };
+  }
+  return response.json();
+}
+
 function setupAuthHandlers() {
   // Switch between login and register
   document.getElementById('show-register').addEventListener('click', (e) => {
@@ -346,7 +355,7 @@ function setupAuthHandlers() {
         body: JSON.stringify({ username, password })
       });
       
-      const data = await response.json();
+      const data = await parseJsonSafe(response);
       
       if (response.ok) {
         // Save token and user data
@@ -364,7 +373,8 @@ function setupAuthHandlers() {
         // Initialize game
         initializeGame();
       } else {
-        showError(data.error || 'Login failed');
+        const message = data && (data.error || data.message);
+        showError(message || `Login failed (status ${response.status})`);
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -387,7 +397,7 @@ function setupAuthHandlers() {
         body: JSON.stringify({ username, email, password })
       });
       
-      const data = await response.json();
+      const data = await parseJsonSafe(response);
       
       if (response.ok) {
         // Save token and user data
@@ -404,7 +414,8 @@ function setupAuthHandlers() {
         // Initialize game
         initializeGame();
       } else {
-        showError(data.error || 'Registration failed');
+        const message = data && (data.error || data.message);
+        showError(message || `Registration failed (status ${response.status})`);
       }
     } catch (error) {
       console.error('Register error:', error);
