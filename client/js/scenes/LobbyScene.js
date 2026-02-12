@@ -862,11 +862,13 @@ class LobbyScene extends Phaser.Scene {
     const dialogHeight = 260;
 
     this.chiggyDialog = this.add.container(width / 2, height * 0.55);
-    this.chiggyDialog.setDepth(20);
+    // Keep dialog above all avatars/overhead UI.
+    this.chiggyDialog.setDepth(2000);
 
     const dialogBg = this.add.graphics();
-    dialogBg.fillStyle(0x000000, 0.75);
-    dialogBg.lineStyle(2, 0xffffff, 0.2);
+    // Make dialog background more opaque so players aren't visible behind text.
+    dialogBg.fillStyle(0x000000, 0.95);
+    dialogBg.lineStyle(2, 0xffffff, 0.35);
     dialogBg.fillRoundedRect(-dialogWidth / 2, -dialogHeight / 2, dialogWidth, dialogHeight, 16);
     dialogBg.strokeRoundedRect(-dialogWidth / 2, -dialogHeight / 2, dialogWidth, dialogHeight, 16);
     const tailX = Phaser.Math.Clamp(this.chiggy.x - (width / 2), -dialogWidth / 2 + 60, dialogWidth / 2 - 60);
@@ -916,6 +918,8 @@ class LobbyScene extends Phaser.Scene {
     if (!this.chiggyDialog || this.chiggyDialogVisible) return;
     this.chiggyDialogVisible = true;
     this.chiggyDialog.setVisible(true);
+    this.chiggyDialog.setDepth(2000);
+    this.children.bringToTop(this.chiggyDialog);
     this.showChiggyOptions();
   }
 
